@@ -1,0 +1,9 @@
+# mise is a tool that manages installations of programming language runtimes and other tools for local development.
+# Documentation: https://mise.jdx.dev/walkthrough.html
+
+# Dev tools to install
+# https://mise.jdx.dev/configuration.html#tools-dev-tools
+[tools]
+
+
+# Define tasks: https://mise.jdx.dev/tasks/
