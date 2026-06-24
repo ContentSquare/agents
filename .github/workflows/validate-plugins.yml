@@ -10,9 +10,9 @@ permissions:
 
 jobs:
   validate:
-    runs-on: nodejs-22-medium
+    runs-on: ubuntu-latest
     steps:
-      - uses: ContentSquare/actions-checkout@approved-v4
+      - uses: actions/checkout@v4
 
       - name: Validate JSON manifests
         run: |
