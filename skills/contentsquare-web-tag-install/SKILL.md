@@ -3,7 +3,7 @@ name: contentsquare-web-tag-install
 description: Install and verify the Contentsquare tracking tag in any web project. Use when asked to "add Contentsquare", "install CS tag", "set up Contentsquare analytics", or configure Contentsquare tracking for a web application. Verification runs through `npx @contentsquare/wizard verify`, which drives an embedded Playwright browser — no browser automation MCP required.
 metadata:
   author: Contentsquare
-  version: "2.0.0"
+  version: "2.2.0"
 ---
 
 # Install Contentsquare Tag
@@ -14,14 +14,16 @@ Follow this document top to bottom. Do not skip sections.
 **All runtime verification is done by one command:**
 
 ```bash
-npx @contentsquare/wizard@2 verify
+npx --yes @contentsquare/wizard@2 verify
 ```
 
 That command launches a real browser, lets the developer click through their app, and reports the
 tag load, first pageview, pageviews on navigation, and CSP issues in a single session. It is resolved
 on demand by `npx` (cached after the first run) — nothing to install globally, and you never drive a
 browser yourself. The `@2` pin tracks the current major line so verification stays reproducible while
-still picking up patch and minor fixes.
+still picking up patch and minor fixes. `--yes` skips npx's first-run "Ok to proceed?" install
+prompt, which would otherwise block a non-interactive agent on a machine that hasn't cached the
+package yet.
 
 ---
 
@@ -269,7 +271,7 @@ Run the verifier from the project root. Pass the URL and tag ID so it doesn't pr
 you get a clean, machine-readable report on stdout (this is the agent mode):
 
 ```bash
-npx @contentsquare/wizard@2 verify --url http://localhost:3000 --tag-id <TAG_ID> --json
+npx --yes @contentsquare/wizard@2 verify --url http://localhost:3000 --tag-id <TAG_ID> --json
 ```
 
 URL defaults by framework: Next.js / Nuxt / CRA → `http://localhost:3000`,
@@ -325,7 +327,7 @@ For `NO_BROWSER` (`2`), ask the developer for consent:
 On a **yes**, re-run with the install flag:
 
 ```bash
-npx @contentsquare/wizard@2 verify --url <url> --tag-id <TAG_ID> --json --install-browser
+npx --yes @contentsquare/wizard@2 verify --url <url> --tag-id <TAG_ID> --json --install-browser
 ```
 
 If the download itself fails behind a corporate proxy, the CLI prints the proxy env vars to set
@@ -396,12 +398,30 @@ When `verify` returns `result: "pass"` (or `pass-with-recommendation`), report:
 - Tag installed: <framework> via @contentsquare/tag-sdk
 - Tag script loading: ✓
 - First pageview sent: ✓
-- Pageviews on navigation: <n>/<n>
+- In-app routes tracked: <navigationsWithPageview>/<navigations.length> routes
 - CSP: <no issues / fixed>
 ```
 
 If the report was `pass-with-recommendation`, add the recommendation verbatim (enabling **Tracking URL
 Changes** in the Contentsquare app for SPA route changes).
+
+### How to phrase the route-tracking line (avoid misleading the developer)
+
+The `<n>/<n>` figure is **distinct in-app routes that fired a pageview**, not the number of beacons
+sent or the number of times the developer navigated. `verify` collapses the trace before grading:
+
+- The **initial landing page** is excluded (it's covered by "First pageview sent").
+- **Repeat visits to the same route are counted once.** If the developer browsed
+  `/` → `/products` → `/cart` → `/`, that is **2** distinct in-app routes (`/products`, `/cart`),
+  so a clean result reads `2/2 routes` — even though more than two navigations happened.
+
+Therefore:
+
+- Phrase it as routes **covered**, e.g. "both in-app routes you visited fired a pageview". Do **not**
+  say "2 pageviews were sent" — that conflates routes with beacons and will confuse the developer.
+- List the route paths from `navigations[].url`, not a count of network requests.
+- If `navigations` is empty, say no in-app route changes were exercised (so SPA tracking wasn't
+  tested), rather than reporting `0/0` as a pass signal.
 
 ---
 
