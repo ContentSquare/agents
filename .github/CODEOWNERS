@@ -11,4 +11,4 @@
 
 # MCP TEAM
 
-**/contentsquare*/                                                        @ContentSquare/mcp-and-a2a
+plugins/contentsquare/*                                                   @ContentSquare/mcp-and-a2a
