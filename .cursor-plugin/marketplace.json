@@ -1,0 +1,22 @@
+{
+  "name": "contentsquare",
+  "owner": {
+    "name": "Contentsquare",
+    "email": "engineering@contentsquare.com"
+  },
+  "metadata": {
+    "description": "Official Contentsquare plugins for AI coding agents"
+  },
+  "plugins": [
+    {
+      "name": "contentsquare-web",
+      "source": "plugins/contentsquare-web",
+      "description": "Install & verify the Contentsquare tracking tag with your AI agent."
+    },
+    {
+      "name": "contentsquare-mcp",
+      "source": "plugins/contentsquare-mcp",
+      "description": "Query your Contentsquare analytics data directly from Cursor using natural language."
+    }
+  ]
+}
