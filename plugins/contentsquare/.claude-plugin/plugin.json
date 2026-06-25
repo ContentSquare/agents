@@ -1,6 +1,6 @@
 {
   "name": "contentsquare",
-  "description": "Query your Contentsquare analytics data directly from Cursor using natural language.",
+  "description": "Query your Contentsquare analytics data directly from your AI coding agent using natural language.",
   "version": "1.0.0",
   "author": {
     "name": "Contentsquare",
@@ -16,6 +16,9 @@
     "journey",
     "impact",
     "funnel",
+    "ux",
+    "metrics",
+    "errors",
     "mcp"
   ],
   "logo": "assets/logo.png"

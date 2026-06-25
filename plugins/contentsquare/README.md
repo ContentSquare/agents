@@ -1,21 +1,21 @@
-# Contentsquare MCP for Cursor
+# Contentsquare MCP
 
-Query your Contentsquare analytics data directly from Cursor using natural language. Ask questions about user journeys, conversion funnels, error impact, and page performance without leaving your editor.
+Query your Contentsquare analytics data directly from your AI coding agent using natural language. Ask questions about user journeys, conversion funnels, error impact, and page performance without leaving your editor.
 
 ## Prerequisites
 
 - A Contentsquare account with admin access
-- Cursor IDE with MCP support enabled
+- An AI coding agent with MCP support (Cursor, Claude Code, or compatible)
 
 ## Installation
 
-Install this plugin from the [Cursor marketplace](https://cursor.com/marketplace) by searching for **contentsquare**, or add it directly from this repository URL.
+Install this plugin from the [Cursor marketplace](https://cursor.com/marketplace) by searching for **contentsquare**, or add it directly from this repository URL. For Claude Code, use the `.claude-plugin` marketplace entry.
 
-Once installed, Cursor will prompt you to authenticate with your Contentsquare account via OAuth. No manual token management required.
+Once installed, your agent will prompt you to authenticate with your Contentsquare account via OAuth. No manual token management required.
 
 ## Authentication
 
-This plugin connects to the Contentsquare MCP server at `https://api.contentsquare.com/mcp` using OAuth 2.1 with PKCE. Cursor handles the authentication flow automatically when you first invoke a tool.
+This plugin connects to the Contentsquare MCP server at `https://api.contentsquare.com/mcp` using OAuth 2.1 with PKCE. Your agent handles the authentication flow automatically when you first invoke a tool.
 
 You will need:
 - A Contentsquare account
