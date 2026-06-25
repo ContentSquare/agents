@@ -8,3 +8,7 @@
 # TAG TEAM
 
 **/contentsquare-web*/                                                    @ContentSquare/tag-functions
+
+# MCP TEAM
+
+plugins/contentsquare/*                                                   @ContentSquare/mcp-and-a2a
