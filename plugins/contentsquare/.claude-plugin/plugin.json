@@ -1,13 +1,13 @@
 {
   "name": "contentsquare",
-  "description": "Query your Contentsquare analytics data directly from Cursor using natural language.",
+  "description": "Query your Contentsquare analytics data directly from your AI coding agent using natural language.",
   "version": "1.0.0",
   "author": {
     "name": "Contentsquare",
-    "email": "engineering@contentsquare.com",
+    "email": "support@contentsquare.com",
     "url": "https://contentsquare.com"
   },
-  "homepage": "https://support.contentsquare.com/hc/en-us/articles/41563169756945-Model-Context-Protocol-MCP",
+  "homepage": "https://contentsquare.com/",
   "repository": "https://github.com/ContentSquare/skills",
   "license": "MIT",
   "keywords": [
@@ -16,7 +16,9 @@
     "journey",
     "impact",
     "funnel",
+    "ux",
+    "metrics",
+    "errors",
     "mcp"
-  ],
-  "logo": "assets/logo.png"
+  ]
 }

@@ -17,7 +17,7 @@
     {
       "name": "contentsquare",
       "source": "./plugins/contentsquare",
-      "description": "Query your Contentsquare analytics data directly from Cursor using natural language."
+      "description": "Query your Contentsquare analytics data directly from your AI coding agent using natural language."
     }
   ]
 }
