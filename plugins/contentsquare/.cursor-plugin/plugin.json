@@ -8,6 +8,6 @@
   },
   "homepage": "https://support.contentsquare.com/hc/en-us/articles/41563169756945-Model-Context-Protocol-MCP",
   "repository": "https://github.com/ContentSquare/skills",
-  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "ux", "metrics", "mcp"],
+  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "ux", "metrics", "errors", "mcp"],
   "logo": "assets/logo.png"
 }
