@@ -1,0 +1,13 @@
+{
+  "name": "contentsquare-mcp",
+  "description": "Query your Contentsquare analytics data directly from Cursor using natural language.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Contentsquare",
+    "email": "engineering@contentsquare.com"
+  },
+  "homepage": "https://support.contentsquare.com/hc/en-us/articles/41563169756945-Model-Context-Protocol-MCP",
+  "repository": "https://github.com/ContentSquare/skills",
+  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "mcp"],
+  "logo": "assets/logo.png"
+}
