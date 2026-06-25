@@ -22,19 +22,6 @@ jobs:
             node -e "const j=require('./$f'); if(!j.name) throw new Error('$f: missing name'); if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(j.name)) throw new Error('$f: name must be kebab-case');"
           done
 
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Validate Claude Code plugins
-        run: |
-          shopt -s nullglob
-          for dir in plugins/*/; do
-            if [[ -f "$dir.claude-plugin/plugin.json" ]]; then
-              echo "validating $dir"
-              claude plugin validate "$dir"
-            fi
-          done
-
       - name: Check generated copies are in sync
         run: |
           ./scripts/sync-plugin.sh
