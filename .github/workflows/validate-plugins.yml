@@ -14,13 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate JSON manifests
-        run: |
-          shopt -s nullglob
-          for f in .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json; do
-            echo "validating $f"
-            node -e "const j=require('./$f'); if(!j.name) throw new Error('$f: missing name'); if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(j.name)) throw new Error('$f: name must be kebab-case');"
-          done
+      - name: Validate manifests, catalogs, MCP configs and skills
+        run: node scripts/validate-plugins.mjs
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
@@ -28,141 +23,11 @@ jobs:
       - name: Validate Claude Code plugins
         run: |
           shopt -s nullglob
-          failed=0
           for dir in plugins/*/; do
-            manifest="${dir}.claude-plugin/plugin.json"
-            if [[ -f "$manifest" ]]; then
-              echo "--- validating $dir ---"
-              echo "manifest contents:"
-              cat "$manifest"
-              echo ""
-              echo "JSON syntax check:"
-              node -e "JSON.parse(require('fs').readFileSync('$manifest','utf8')); console.log('OK')" || { echo "::error file=$manifest::Invalid JSON syntax"; failed=1; continue; }
-              echo "claude plugin validate output:"
-              claude plugin validate "$dir" || failed=1
-              echo ""
-            fi
+            [[ -f "${dir}.claude-plugin/plugin.json" ]] || continue
+            echo "--- validating $dir ---"
+            claude plugin validate "$dir"
           done
-          exit $failed
-
-      - name: Validate MCP server configs
-        run: |
-          shopt -s nullglob
-          failed=0
-          for f in plugins/*/.mcp.json; do
-            echo "validating $f"
-            node -e "
-              const fs = require('fs');
-              const raw = fs.readFileSync('$f', 'utf8');
-              let j;
-              try { j = JSON.parse(raw); } catch(e) { console.error('::error file=$f::Invalid JSON: ' + e.message); process.exit(1); }
-              if (!j.mcpServers || typeof j.mcpServers !== 'object') { console.error('::error file=$f::Missing or invalid mcpServers object'); process.exit(1); }
-              const servers = Object.entries(j.mcpServers);
-              if (servers.length === 0) { console.error('::error file=$f::mcpServers must have at least one entry'); process.exit(1); }
-              for (const [name, cfg] of servers) {
-                if (!cfg.url && !cfg.command) { console.error('::error file=$f::server \"' + name + '\" must have url or command'); process.exit(1); }
-              }
-              console.log('OK - ' + servers.length + ' server(s)');
-            " || failed=1
-          done
-          exit $failed
-
-      - name: Validate SKILL.md frontmatter
-        run: |
-          shopt -s nullglob
-          failed=0
-          for skill in plugins/*/skills/*/SKILL.md; do
-            node -e "
-              const fs = require('fs');
-              const content = fs.readFileSync('$skill', 'utf8');
-              if (!content.startsWith('---')) { console.error('::error file=$skill::Missing YAML frontmatter (must start with ---)'); process.exit(1); }
-              const end = content.indexOf('---', 3);
-              if (end === -1) { console.error('::error file=$skill::Unclosed YAML frontmatter'); process.exit(1); }
-              const fm = content.slice(3, end);
-              if (!/^description\s*:/m.test(fm)) { console.error('::error file=$skill::Missing required description field in frontmatter'); process.exit(1); }
-              console.log('OK $skill');
-            " || failed=1
-          done
-          exit $failed
-
-      - name: Validate marketplace catalog consistency
-        run: |
-          node -e "
-            const fs = require('fs');
-            const path = require('path');
-            let failed = false;
-            for (const catalog of ['.claude-plugin/marketplace.json', '.cursor-plugin/marketplace.json']) {
-              const j = JSON.parse(fs.readFileSync(catalog, 'utf8'));
-              for (const plugin of j.plugins || []) {
-                const src = plugin.source.replace(/^\.\//, '');
-                if (!fs.existsSync(src)) {
-                  console.error('::error file=' + catalog + '::Plugin \"' + plugin.name + '\" source path does not exist: ' + src);
-                  failed = true;
-                }
-                const claudeManifest = src + '/.claude-plugin/plugin.json';
-                const cursorManifest = src + '/.cursor-plugin/plugin.json';
-                if (catalog.startsWith('.claude') && !fs.existsSync(claudeManifest)) {
-                  console.error('::error file=' + catalog + '::Plugin \"' + plugin.name + '\" missing .claude-plugin/plugin.json');
-                  failed = true;
-                }
-                if (catalog.startsWith('.cursor') && !fs.existsSync(cursorManifest)) {
-                  console.error('::error file=' + catalog + '::Plugin \"' + plugin.name + '\" missing .cursor-plugin/plugin.json');
-                  failed = true;
-                }
-              }
-            }
-            if (!failed) console.log('OK - all catalog entries resolve to existing plugin directories');
-            process.exit(failed ? 1 : 0);
-          "
-
-      - name: Validate cross-manifest consistency
-        run: |
-          shopt -s nullglob
-          node -e "
-            const fs = require('fs');
-            const path = require('path');
-            let failed = false;
-            const dirs = fs.readdirSync('plugins').map(d => 'plugins/' + d);
-            for (const dir of dirs) {
-              const claude = dir + '/.claude-plugin/plugin.json';
-              const cursor = dir + '/.cursor-plugin/plugin.json';
-              if (!fs.existsSync(claude) || !fs.existsSync(cursor)) continue;
-              const c = JSON.parse(fs.readFileSync(claude, 'utf8'));
-              const r = JSON.parse(fs.readFileSync(cursor, 'utf8'));
-              if (c.name !== r.name) {
-                console.error('::error file=' + claude + '::name mismatch: .claude-plugin has \"' + c.name + '\" but .cursor-plugin has \"' + r.name + '\"');
-                failed = true;
-              }
-              if (c.version && r.version && c.version !== r.version) {
-                console.error('::error file=' + claude + '::version mismatch: .claude-plugin has \"' + c.version + '\" but .cursor-plugin has \"' + r.version + '\"');
-                failed = true;
-              }
-            }
-            if (!failed) console.log('OK - all cross-manifest fields are consistent');
-            process.exit(failed ? 1 : 0);
-          "
-
-      - name: Validate logo assets exist
-        run: |
-          shopt -s nullglob
-          node -e "
-            const fs = require('fs');
-            const path = require('path');
-            let failed = false;
-            for (const manifest of fs.readdirSync('plugins').map(d => 'plugins/' + d + '/.cursor-plugin/plugin.json').filter(f => fs.existsSync(f))) {
-              const j = JSON.parse(fs.readFileSync(manifest, 'utf8'));
-              if (!j.logo) continue;
-              const pluginDir = path.dirname(path.dirname(manifest));
-              const logoPath = path.join(pluginDir, j.logo);
-              if (!fs.existsSync(logoPath)) {
-                console.error('::error file=' + manifest + '::logo file not found: ' + logoPath);
-                failed = true;
-              } else {
-                console.log('OK ' + manifest + ' -> ' + logoPath);
-              }
-            }
-            process.exit(failed ? 1 : 0);
-          "
 
       - name: Check generated copies are in sync
         run: |
