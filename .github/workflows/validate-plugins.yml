@@ -14,12 +14,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate JSON manifests
+      - name: Validate manifests, catalogs, MCP configs and skills
+        run: node scripts/validate-plugins.mjs
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Validate Claude Code plugins
         run: |
           shopt -s nullglob
-          for f in .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json; do
-            echo "validating $f"
-            node -e "const j=require('./$f'); if(!j.name) throw new Error('$f: missing name'); if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(j.name)) throw new Error('$f: name must be kebab-case');"
+          for dir in plugins/*/; do
+            [[ -f "${dir}.claude-plugin/plugin.json" ]] || continue
+            echo "--- validating $dir ---"
+            claude plugin validate "$dir"
           done
 
       - name: Check generated copies are in sync
