@@ -1,15 +1,15 @@
 {
-  "name": "@contentsquare/skills",
+  "name": "@contentsquare/agents",
   "version": "1.0.0",
   "description": "AI coding assistant helpers for Web/Mobile setup, analysis and more",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ContentSquare/skills.git"
+    "url": "https://github.com/ContentSquare/agents.git"
   },
-  "homepage": "https://github.com/ContentSquare/skills#readme",
+  "homepage": "https://github.com/ContentSquare/agents#readme",
   "bugs": {
-    "url": "https://github.com/ContentSquare/skills/issues"
+    "url": "https://github.com/ContentSquare/agents/issues"
   },
   "author": "Contentsquare",
   "license": "MIT",

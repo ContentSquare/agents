@@ -1,53 +1,80 @@
-# Contentsquare skills
+# Contentsquare for AI coding agents
 
-Use Agent skills to let your AI coding assistant (GitHub Copilot, Cursor, Claude Code, or any compatible tool) handle Contentsquare configuration like Web/Mobile setup, version migration, feature implementation, and much more.
+Official Contentsquare artifacts for AI coding assistants (GitHub Copilot, Cursor, Claude Code, or any compatible tool). This repository is the home for Contentsquare's AI-related deliverables — plugins, MCP server configs, and standalone skills — that let your agent handle Contentsquare configuration, analysis, and more, right from your editor.
+
+It ships as:
+
+- **Plugin marketplaces** for Claude Code, GitHub Copilot, and Cursor.
+- **Plugins** that bundle skills and/or MCP servers.
+- **Standalone skills** distributed through the open [skills.sh](https://skills.sh) ecosystem.
 
 > [!WARNING]
-> This skill guides your AI coding agent through the Contentsquare configuration. The agent you use (Cursor, Claude Code, Copilot) is your own tool and operates under your settings and permissions. Contentsquare is not responsible for how your agent interprets or applies the instructions contained in these files.
+> These artifacts guide your AI coding agent through Contentsquare configuration and analysis. The agent you use (Cursor, Claude Code, Copilot) is your own tool and operates under your settings and permissions. Contentsquare is not responsible for how your agent interprets or applies the instructions contained in these files.
 
-## What You Can Do
+## What's included
 
-**Install and verify the Contentsquare tag**: Let your agent handle the installation of the Contentsquare tag on your website, ensuring it's set up correctly to start collecting data.
+Today this repository ships two plugins:
+
+| Plugin | Type | Description |
+|--------|------|-------------|
+| `contentsquare-web` | Skill | Install & verify the Contentsquare tracking tag in any web project (Next.js, React, Vue, Angular, SvelteKit, Nuxt, static HTML). |
+| `contentsquare` | MCP | Query your Contentsquare analytics data — journeys, funnels, error impact, page performance — in natural language. |
+
+## What you can do
+
+**Install and verify the Contentsquare tag** — let your agent add the tag to your website and confirm it loads correctly:
 
 ```
-Add contentsquare to my website using tag ID as `81c677ba742d7`
+Add contentsquare to my website using tag ID `81c677ba742d7`
+```
+
+**Query your analytics** — ask questions about your data without leaving your editor:
+
+```
+What are the top pages by sessions with errors on my main project?
 ```
 
 ## Installation
 
 ### As a plugin (Claude Code & GitHub Copilot CLI)
 
-This repository is also an [Agent Skills](https://agentskills.io) plugin marketplace, so you can install the Contentsquare tools as a first-class plugin.
+Add the marketplace, then install the plugins you want.
 
 **Claude Code:**
 
 ```shell
-/plugin marketplace add ContentSquare/skills
+/plugin marketplace add ContentSquare/agents
 /plugin install contentsquare-web@contentsquare
+/plugin install contentsquare@contentsquare
 ```
 
 **GitHub Copilot CLI:**
 
 ```shell
-copilot plugin marketplace add ContentSquare/skills
+copilot plugin marketplace add ContentSquare/agents
 copilot plugin install contentsquare-web@contentsquare
+copilot plugin install contentsquare@contentsquare
 ```
 
-Then, in natural language: "Install Contentsquare, tag ID `81c677ba742d7`" — the agent loads the skill automatically.
+Then, in natural language: "Install Contentsquare, tag ID `81c677ba742d7`" — the agent loads the right skill automatically.
 
-### Using skills package manager (skills.sh)
+### Cursor
 
-For agents supporting the open agent [skills.sh](https://skills.sh) ecosystem:
+Install from the [Cursor marketplace](https://cursor.com/marketplace) by searching for **contentsquare**, or add this repository directly. Cursor reads the `.cursor-plugin/` catalog.
+
+### Standalone skills (skills.sh)
+
+For agents supporting the open [skills.sh](https://skills.sh) ecosystem:
 
 ```bash
-npx skills add contentsquare/skills
+npx skills add contentsquare/agents
 ```
 
 Works with Claude Code, Cursor, GitHub Copilot, and other compatible agents.
 
 ### Manual installation
 
-1. Copy the skills inside this repository `./skills` folder and place them in the location your AI assistant uses for context discovery:
+Copy the skills from this repository's `./skills` folder into the location your AI assistant uses for context discovery:
 
 | Assistant | Recommended location |
 |-----------|---------------------|
@@ -56,30 +83,20 @@ Works with Claude Code, Cursor, GitHub Copilot, and other compatible agents.
 | Claude Code | `.claude/skills/` or project root |
 | Any (generic) | `.agents/skills/` |
 
-You can verify if the skill is discoverable by prompting your AI agent "Which skills are available for you to use?".
+You can verify a skill is discoverable by prompting your agent: "Which skills are available for you to use?".
 
-## Available Skills
-
-| Skill | Description |
-|-------|-------------|
-| `contentsquare/contentsquare-web-tag-install` | Install and verify the Contentsquare tracking tag in any web project |
+For the MCP server, point your agent's MCP configuration at `https://api.contentsquare.com/mcp`. Your agent handles the OAuth flow on first use.
 
 ## Repository layout (for maintainers)
 
-The plugin marketplace reuses single authored sources; the rest are generated copies kept in sync by CI.
+The marketplaces reuse single authored sources; the rest are generated copies kept in sync by CI.
 
 | Path | Role |
 |------|------|
-| `skills/contentsquare-web-tag-install/SKILL.md` | **Synced** from the wizard repo — do not hand-edit (see below) |
-| `.claude-plugin/marketplace.json` | **Authored** marketplace catalog (read by Claude Code and Copilot) |
-| `plugins/contentsquare-web/.claude-plugin/plugin.json` | **Authored** plugin manifest |
-| `plugins/contentsquare-web/skills/contentsquare-web-tag-install/SKILL.md` | Generated copy of the skill — do not edit |
+| `skills/<skill-name>/SKILL.md` | **Authored** source of each standalone skill |
+| `plugins/<plugin-name>/` | **Authored** plugin (manifest, and bundled skills and/or `.mcp.json`) |
+| `plugins/<plugin-name>/skills/<skill-name>/SKILL.md` | Generated copy of a skill — do not edit |
+| `.claude-plugin/marketplace.json` | **Authored** marketplace catalog (Claude Code & Copilot) |
+| `.cursor-plugin/marketplace.json` | **Authored** marketplace catalog (Cursor) |
 
 After editing an authored source, run `./scripts/sync-plugin.sh` and commit the result. CI fails if the generated copies drift.
-
-### Where the tag-install skill comes from
-
-The body of `contentsquare-web-tag-install` is owned by the private wizard repo at
-`ContentSquare/wizard` → `skills/standalone-web-tag-install.md`. A workflow there opens a PR to this
-repo whenever that source changes, updating both the skill and its plugin copy. **Do not hand-edit the
-skill here** — edit the source in the wizard repo, or your change will be overwritten by the next sync.
