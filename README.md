@@ -13,12 +13,16 @@ It ships as:
 
 ## What's included
 
-Today this repository ships two plugins:
+This repository currently ships the following plugins:
 
 | Plugin | Type | Description |
 |--------|------|-------------|
 | `contentsquare-web` | Skill | Install & verify the Contentsquare tracking tag in any web project (Next.js, React, Vue, Angular, SvelteKit, Nuxt, static HTML). |
 | `contentsquare` | MCP | Query your Contentsquare analytics data — journeys, funnels, error impact, page performance — in natural language. |
+| `contentsquare-android` | Skill | Integrate & manage the Contentsquare SDK in Android applications. |
+| `contentsquare-ios` | Skill | Integrate & manage the Contentsquare SDK in iOS applications. |
+| `contentsquare-reactnative` | Skill | Integrate & manage the Contentsquare SDK in React Native applications. |
+| `contentsquare-flutter` | Skill | Integrate & manage the Contentsquare SDK in Flutter applications. |
 
 ## What you can do
 
@@ -38,13 +42,21 @@ What are the top pages by sessions with errors on my main project?
 
 ### As a plugin (Claude Code & GitHub Copilot CLI)
 
-Add the marketplace, then install the plugins you want.
+Add the marketplace, then install **only the plugin(s) that match your project's stack**. You do not need to install all of them.
 
 **Claude Code:**
 
 ```shell
 /plugin marketplace add ContentSquare/agents
+
+# 1. Choose the skill that matches your platform:
 /plugin install contentsquare-web@contentsquare
+# /plugin install contentsquare-android@contentsquare
+# /plugin install contentsquare-ios@contentsquare
+# /plugin install contentsquare-reactnative@contentsquare
+# /plugin install contentsquare-flutter@contentsquare
+
+# 2. (Optional) Install the MCP server for analytics querying:
 /plugin install contentsquare@contentsquare
 ```
 
@@ -52,7 +64,15 @@ Add the marketplace, then install the plugins you want.
 
 ```shell
 copilot plugin marketplace add ContentSquare/agents
+
+# 1. Choose the skill that matches your platform:
 copilot plugin install contentsquare-web@contentsquare
+# copilot plugin install contentsquare-android@contentsquare
+# copilot plugin install contentsquare-ios@contentsquare
+# copilot plugin install contentsquare-reactnative@contentsquare
+# copilot plugin install contentsquare-flutter@contentsquare
+
+# 2. (Optional) Install the MCP server for analytics querying:
 copilot plugin install contentsquare@contentsquare
 ```
 
