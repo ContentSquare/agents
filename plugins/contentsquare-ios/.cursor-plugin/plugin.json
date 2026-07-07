@@ -1,0 +1,19 @@
+{
+  "name": "contentsquare-ios",
+  "description": "Contentsquare SDK integration and management for iOS applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Contentsquare",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://docs.contentsquare.com/en/ios/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": [
+    "contentsquare",
+    "analytics",
+    "ios",
+    "mobile",
+    "sdk"
+  ]
+}

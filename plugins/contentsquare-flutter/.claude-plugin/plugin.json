@@ -1,0 +1,19 @@
+{
+  "name": "contentsquare-flutter",
+  "description": "Contentsquare SDK integration and management for Flutter applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Contentsquare",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://docs.contentsquare.com/en/flutter/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": [
+    "contentsquare",
+    "analytics",
+    "flutter",
+    "mobile",
+    "sdk"
+  ]
+}

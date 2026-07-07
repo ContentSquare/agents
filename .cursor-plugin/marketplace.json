@@ -17,6 +17,26 @@
       "name": "contentsquare",
       "source": "plugins/contentsquare",
       "description": "Query your Contentsquare analytics data directly from Cursor using natural language."
+    },
+    {
+      "name": "contentsquare-android",
+      "source": "plugins/contentsquare-android",
+      "description": "Integrate & manage Contentsquare SDK in Android apps with your AI agent."
+    },
+    {
+      "name": "contentsquare-ios",
+      "source": "plugins/contentsquare-ios",
+      "description": "Integrate & manage Contentsquare SDK in iOS apps with your AI agent."
+    },
+    {
+      "name": "contentsquare-reactnative",
+      "source": "plugins/contentsquare-reactnative",
+      "description": "Integrate & manage Contentsquare SDK in React Native apps with your AI agent."
+    },
+    {
+      "name": "contentsquare-flutter",
+      "source": "plugins/contentsquare-flutter",
+      "description": "Integrate & manage Contentsquare SDK in Flutter apps with your AI agent."
     }
   ]
 }

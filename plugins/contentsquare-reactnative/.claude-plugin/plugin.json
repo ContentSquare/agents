@@ -1,0 +1,19 @@
+{
+  "name": "contentsquare-reactnative",
+  "description": "Contentsquare SDK integration and management for React Native applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Contentsquare",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://docs.contentsquare.com/en/react-native/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": [
+    "contentsquare",
+    "analytics",
+    "react native",
+    "mobile",
+    "sdk"
+  ]
+}
