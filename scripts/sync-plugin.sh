@@ -24,14 +24,18 @@ shopt -s nullglob
 synced=0
 for dest_dir in plugins/*/skills/*/; do
   skill_name="$(basename "$dest_dir")"
-  src="skills/$skill_name/SKILL.md"
-  dest="${dest_dir}SKILL.md"
-  if [[ ! -f "$src" ]]; then
-    echo "error: plugin bundles skill '$skill_name' but no authored source at $src" >&2
+  src_dir="skills/$skill_name"
+  if [[ ! -d "$src_dir" ]]; then
+    echo "error: plugin bundles skill '$skill_name' but no authored source directory at $src_dir" >&2
     exit 1
   fi
-  cp "$src" "$dest"
-  echo "synced $src -> $dest"
+  
+  # Remove old sync output to handle deleted files
+  rm -rf "${dest_dir:?}"/*
+  # Copy all contents including subdirectories and dotfiles
+  cp -a "$src_dir"/. "$dest_dir"
+  
+  echo "synced $src_dir/ -> $dest_dir/"
   synced=$((synced + 1))
 done
 

@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 ./scripts/sync-plugin.sh
-git add plugins/*/skills/*/SKILL.md
+git add plugins/*/skills/*/

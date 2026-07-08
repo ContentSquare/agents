@@ -1,0 +1,19 @@
+{
+  "name": "contentsquare-android",
+  "description": "Contentsquare SDK integration and management for Android applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Contentsquare",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://docs.contentsquare.com/en/android/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": [
+    "contentsquare",
+    "analytics",
+    "android",
+    "mobile",
+    "sdk"
+  ]
+}
