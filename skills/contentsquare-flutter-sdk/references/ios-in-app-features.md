@@ -13,7 +13,6 @@ To use Contentsquare in-app features on iOS (screenshot capture, SDK logs, Log V
 The app must be opened via a custom URL scheme.
 
 **Using Xcode:**
-
 1. Open the project settings
 2. Select the app target
 3. Select the `Info` settings
@@ -119,25 +118,20 @@ struct MyApp: App {
 Once configured, in-app features can be enabled by:
 
 ### 1. Scanning QR code (physical device)
-
 From the Contentsquare platform menu, scan the displayed QR code with the device.
 
 ### 2. Custom link (simulator)
-
 Copy the deeplink from the Contentsquare platform and paste it in Safari on the Simulator.
 
 ### 3. Terminal command (simulator)
-
 ```bash
 xcrun simctl openurl booted "CUSTOM_LINK"
 ```
-
 Replace `CUSTOM_LINK` with the actual deeplink from the Contentsquare platform.
 
 ## Debugging with logs
 
 By default, only one startup log is visible:
-
 ```
 CSLIB ℹ️ Info: Contentsquare SDK vX.X.X starting in app: {{bundleID}}
 ```
@@ -145,7 +139,6 @@ CSLIB ℹ️ Info: Contentsquare SDK vX.X.X starting in app: {{bundleID}}
 To enable all logs, activate in-app features. Logs appear when in-app features are enabled and stop when disabled.
 
 **To view logs:**
-
 1. Connect the device to Mac (or use same Wi-Fi for wireless debugging)
 2. Open macOS Console app (enable Info messages via Action > Include Info Messages) or Xcode
 3. Filter logs on `CSLIB`
@@ -161,9 +154,9 @@ After completing the setup:
 
 ## Troubleshooting
 
-| Issue                           | Solution                                                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Deeplink doesn't open the app   | Verify the URL scheme in `Info.plist` matches `cs-$(PRODUCT_BUNDLE_IDENTIFIER)`. Check bundle identifier in Xcode. |
-| No overlay appears              | Ensure `CSQ.handle(url:)` is called in the correct lifecycle method. Check console for errors.                     |
-| `ContentsquareModule` not found | Run `pod install` in the `ios/` directory. Ensure the Contentsquare Flutter plugin is properly installed.          |
-| Logs not appearing              | Ensure in-app features are enabled. Check Console app filter settings (include Info messages).                     |
+| Issue | Solution |
+|-------|----------|
+| Deeplink doesn't open the app | Verify the URL scheme in `Info.plist` matches `cs-$(PRODUCT_BUNDLE_IDENTIFIER)`. Check bundle identifier in Xcode. |
+| No overlay appears | Ensure `CSQ.handle(url:)` is called in the correct lifecycle method. Check console for errors. |
+| `ContentsquareModule` not found | Run `pod install` in the `ios/` directory. Ensure the Contentsquare Flutter plugin is properly installed. |
+| Logs not appearing | Ensure in-app features are enabled. Check Console app filter settings (include Info messages). |

@@ -11,7 +11,7 @@ description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Repla
 
 ```yaml
 dependencies:
-  contentsquare: ^4.4.0
+  contentsquare: ^4.4.2
 ```
 
 Then run `flutter pub get`.
