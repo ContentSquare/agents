@@ -1,14 +1,21 @@
 # CODEOWNERS documentation : https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-code-owners
 
-* @ContentSquare/tag-functions
+*                               @ContentSquare/tag-functions @ContentSquare/mobile
 
 # GitHub Copilot agents folder ownership
-.github/agents/* @ContentSquare/tag-functions
+.github/agents/*                @ContentSquare/tag-functions
 
 # TAG TEAM
 
-**/contentsquare-web*/                                                    @ContentSquare/tag-functions
+**/contentsquare-web*/          @ContentSquare/tag-functions
 
 # MCP TEAM
 
-plugins/contentsquare/*                                                   @ContentSquare/mcp-and-a2a
+plugins/contentsquare/*         @ContentSquare/mcp-and-a2a
+
+# MOBILE TEAM
+
+**/contentsquare-android*/      @ContentSquare/mobile
+**/contentsquare-ios*/          @ContentSquare/mobile
+**/contentsquare-reactnative*/  @ContentSquare/mobile
+**/contentsquare-flutter*/      @ContentSquare/mobile

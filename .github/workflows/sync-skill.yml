@@ -1,0 +1,76 @@
+name: Sync Skill
+
+# Reusable workflow: mirrors a caller's authored skill into skills/, regenerates
+# the plugin copies, and opens/updates one PR per stack.
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: Source repo slug (owner/name)
+        required: true
+        type: string
+      sha:
+        description: Merged commit SHA on the source repo's default branch
+        required: true
+        type: string
+      compare_url:
+        description: Source diff URL (optional)
+        required: false
+        type: string
+        default: ""
+      skills_path:
+        description: Skills root inside the source repo
+        required: false
+        type: string
+        default: ai/.agents/skills
+    secrets:
+      token:
+        description: Token with read on the source repo and write access here.
+        required: true
+
+concurrency:
+  group: sync-skill-${{ inputs.repo }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu24-large
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout agents repo
+        uses: ContentSquare/actions-checkout@approved-v6
+        with:
+          repository: ContentSquare/agents
+          ref: main
+          token: ${{ secrets.token }}
+          fetch-depth: 0
+
+      - name: Checkout source SDK repo (skills only)
+        uses: ContentSquare/actions-checkout@approved-v6
+        with:
+          repository: ${{ inputs.repo }}
+          ref: ${{ inputs.sha }}
+          token: ${{ secrets.token }}
+          path: _source
+          sparse-checkout: ${{ inputs.skills_path }}
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync skill and open/update PR
+        env:
+          GH_TOKEN: ${{ secrets.token }}
+          SOURCE_REPO: ${{ inputs.repo }}
+          SOURCE_SHA: ${{ inputs.sha }}
+          COMPARE_URL: ${{ inputs.compare_url }}
+          SKILLS_PATH: ${{ inputs.skills_path }}
+          SOURCE_DIR: _source
+          SERVER_URL: ${{ github.server_url }}
+        run: ./scripts/sync-skill-from-source.sh
