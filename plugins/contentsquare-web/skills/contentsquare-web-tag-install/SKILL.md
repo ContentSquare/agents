@@ -3,7 +3,7 @@ name: contentsquare-web-tag-install
 description: Install and verify the Contentsquare tracking tag in any web project. Use when asked to "add Contentsquare", "install CS tag", "set up Contentsquare analytics", or configure Contentsquare tracking for a web application. Verification runs through `npx @contentsquare/wizard verify`, which drives an embedded Playwright browser — no browser automation MCP required.
 metadata:
   author: Contentsquare
-  version: "2.2.0"
+  version: "2.5.0"
 ---
 
 # Install Contentsquare Tag
@@ -338,12 +338,71 @@ re-run.
 
 | Report                                   | Action                                                                                                                                               |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `result: "pass"`                         | Done — go to the success message.                                                                                                                    |
-| `result: "pass-with-recommendation"`     | Tag works; SPA route changes missed pageviews. Surface the `recommendation` (enable **Tracking URL Changes** in the Contentsquare app). Then finish. |
+| `result: "pass"`                         | Deterministic checks (tag load, first pageview, CSP) are clean. Still assess navigation tracking below before finishing.                            |
+| `result: "pass-with-recommendation"`     | Tag works but a CSP violation was seen. Surface the `recommendation` verbatim, then go to Step 3. Also assess navigation tracking below.            |
 | `tagScriptLoaded: false`                 | Tag never loaded. Ensure `injectContentsquareScript` runs client-side (useEffect/onMount/`.client.ts`) and the package is installed. Re-run Step 2.  |
 | `initialPageview: false` (script loaded) | Confirm the tag ID is correct and the project is active. Re-run Step 2.                                                                              |
 | `tagIdMismatch: true`                    | The tag URL uses a different ID than `--tag-id`. Fix the `clientId` in code. Re-run Step 2.                                                          |
 | `cspViolations` non-empty                | Go to Step 3.                                                                                                                                        |
+
+### Assess navigation tracking (you decide — this is not in `result`)
+
+`verify` reports navigation as raw evidence, not a graded check: it hands you two
+raw, time-ordered streams so **you** decide whether in-app navigation is tracked.
+There is no single correct URL-normalization for every app (path routing, hash
+routing like `/app#about`, query routing like `/app?tab=about`), so the tool
+leaves the call to you.
+
+- `navigations[]` — every navigation the developer made, with the **full URL**
+  (hash and query preserved), the `type` (`load` for full page loads / MPA,
+  `pushState` / `replaceState` / `popstate` / `hashchange` for SPA route
+  changes), a `top` flag (`true` = main frame, `false` = inside an iframe), and
+  a `ts`.
+- `pageviewBeacons[]` — every pageview the tag actually fired, with the **URL the
+  tag reported** (`url`) and a `ts`. This is the tag's own notion of "a page".
+
+How to judge it:
+
+1. **No navigations recorded** (`navigations` empty, or only the initial `load`):
+   the developer didn't exercise in-app navigation, so it wasn't tested. Say so —
+   don't claim navigation tracking works or is broken.
+2. **Focus on top-frame navigations first** (`top: true`). Entries with
+   `top: false` happen inside an iframe — that could be the app itself (some apps
+   run in an iframe) or just a third-party embed (ads, video, chat, payment
+   widgets). Only treat `top: false` navigations as app navigation if a
+   `pageviewBeacons[]` entry reports the same iframe URL; otherwise they are
+   almost certainly embeds and should be ignored.
+3. **Each distinct page the developer visited should have a corresponding pageview
+   beacon.** Correlate by intent, not string equality:
+   - A pageview whose reported `url` matches the navigation URL (exactly, or at the
+     part that identifies the page for that app's routing style) → that navigation
+     is tracked.
+   - A pageview `ts` that lands shortly after a navigation `ts` is strong
+     corroboration when URLs are formatted differently on each side.
+4. **Full-page (MPA) navigation** (`type: "load"`): each full load reloads the tag
+   and should produce its own pageview — expect roughly one beacon per load.
+5. **SPA / hash / query navigation** (`pushState`/`replaceState`/`popstate`/`hashchange`,
+   or URLs that differ only by `#…` or `?…`): if the developer moved between such pages but
+   the tag fired **no** new pageview for them, the tag likely isn't tracking URL
+   changes. Recommend, verbatim:
+
+   > Some in-app navigations did not fire a pageview. If this is a single-page app,
+   > enable "Tracking URL Changes" in the Contentsquare app (Project and Users →
+   > Tracking URL Changes).
+
+   If the app routes purely by hash or query string, note that URL-change tracking
+   in the Contentsquare project may also need to be configured to treat those as
+   separate pages.
+6. Only recommend when the evidence shows a gap. If every navigated page has a
+   matching pageview, navigation tracking is working — say so.
+7. **When in doubt, don't guess — read the code.** If the correlation is
+   ambiguous (URLs don't line up, timing is unclear, the routing style is unusual,
+   or the app runs inside an iframe), inspect the app's routing setup before
+   drawing a conclusion. Look at the router config and navigation code (e.g.
+   `createRouter`/route definitions, hash vs history mode, `<a>` vs client-side
+   link components, redirects/guards, whether the app is mounted in an iframe) for
+   specifics that explain what you observed. Base the recommendation on what the
+   code actually does, not on an assumption.
 
 ---
 
@@ -365,8 +424,6 @@ Add to the project's **existing** directives — append, never replace:
 script-src:  'unsafe-inline' *.contentsquare.net app.contentsquare.com
 connect-src: *.contentsquare.net *.contentsquare.com
 img-src:     *.contentsquare.net
-child-src:   blob:
-worker-src:  blob:
 ```
 
 Apply them in whatever format the project already uses (Next.js `headers()`, middleware, `<meta>` tag,
@@ -377,8 +434,6 @@ nginx, helmet). Preserve all existing values.
 "script-src 'self' 'unsafe-inline' *.contentsquare.net app.contentsquare.com",
 "connect-src 'self' *.contentsquare.net *.contentsquare.com",
 "img-src 'self' *.contentsquare.net",
-"child-src 'self' blob:",
-"worker-src 'self' blob:",
 ```
 
 ### 3.3 Re-verify
@@ -390,7 +445,8 @@ and run `verify` again. Confirm `cspViolations` is now empty.
 
 ## Success
 
-When `verify` returns `result: "pass"` (or `pass-with-recommendation`), report:
+When `verify` returns `result: "pass"` (or `pass-with-recommendation`) and you've
+assessed navigation tracking, report:
 
 ```
 ✅ Contentsquare setup complete!
@@ -398,30 +454,30 @@ When `verify` returns `result: "pass"` (or `pass-with-recommendation`), report:
 - Tag installed: <framework> via @contentsquare/tag-sdk
 - Tag script loading: ✓
 - First pageview sent: ✓
-- In-app routes tracked: <navigationsWithPageview>/<navigations.length> routes
+- Navigation tracking: <your assessment — see below>
 - CSP: <no issues / fixed>
 ```
 
-If the report was `pass-with-recommendation`, add the recommendation verbatim (enabling **Tracking URL
-Changes** in the Contentsquare app for SPA route changes).
+If a CSP violation was reported, add the `recommendation` verbatim. If your
+navigation assessment found untracked SPA/hash/query navigations, add the
+**Tracking URL Changes** recommendation verbatim.
 
-### How to phrase the route-tracking line (avoid misleading the developer)
+### How to phrase the navigation-tracking line (avoid misleading the developer)
 
-The `<n>/<n>` figure is **distinct in-app routes that fired a pageview**, not the number of beacons
-sent or the number of times the developer navigated. `verify` collapses the trace before grading:
+`verify` gives you raw evidence, not a score: `navigations[]` (what the developer
+visited) and `pageviewBeacons[]` (what the tag reported). Derive the line from
+correlating them yourself — never invent a `pageviews sent` count.
 
-- The **initial landing page** is excluded (it's covered by "First pageview sent").
-- **Repeat visits to the same route are counted once.** If the developer browsed
-  `/` → `/products` → `/cart` → `/`, that is **2** distinct in-app routes (`/products`, `/cart`),
-  so a clean result reads `2/2 routes` — even though more than two navigations happened.
-
-Therefore:
-
-- Phrase it as routes **covered**, e.g. "both in-app routes you visited fired a pageview". Do **not**
-  say "2 pageviews were sent" — that conflates routes with beacons and will confuse the developer.
-- List the route paths from `navigations[].url`, not a count of network requests.
-- If `navigations` is empty, say no in-app route changes were exercised (so SPA tracking wasn't
-  tested), rather than reporting `0/0` as a pass signal.
+- Phrase it as pages **covered**, e.g. "every page you visited fired a pageview",
+  or name the specific pages that did **not**. Do **not** say "N pageviews were
+  sent" — that conflates pages with network beacons and confuses the developer.
+- List the pages from `navigations[].url`, correlated to `pageviewBeacons[].url`.
+- Count a page once even if the developer visited it several times — the raw
+  streams may contain repeats and `replaceState`/`load` bursts; collapse them
+  when you summarise.
+- If `navigations` is empty (or only the initial `load`), say in-app navigation
+  wasn't exercised, so navigation tracking wasn't tested — do **not** report it as
+  a pass or a fail.
 
 ---
 
