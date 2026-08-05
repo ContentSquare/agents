@@ -144,7 +144,6 @@ dialog.csqUnmaskNegativeButton()
 ```
 
 Available on `AlertDialog`:
-
 - `csqMask()` / `csqUnmask()`
 - `csqMaskTitle()` / `csqUnmaskTitle()`
 - `csqMaskMessage()` / `csqUnmaskMessage()`
@@ -152,14 +151,12 @@ Available on `AlertDialog`:
 - `csqMaskNegativeButton()` / `csqUnmaskNegativeButton()`
 
 Available on `DatePickerDialog`:
-
 - `csqMask()` / `csqUnmask()`
 - `csqMaskHeader()` / `csqUnmaskHeader()`
 - `csqMaskCalendar()` / `csqUnmaskCalendar()`
 - `csqMaskButtonPanel()` / `csqUnmaskButtonPanel()`
 
 Available on `TimePickerDialog`:
-
 - `csqMask()` / `csqUnmask()`
 - `csqMaskHeader()` / `csqUnmaskHeader()`
 - `csqMaskRadialPicker()` / `csqUnmaskRadialPicker()`
@@ -226,8 +223,8 @@ Emails in URLs are masked automatically.
 
 - **`SurfaceView`** — not supported. Will appear as white views (covers video streaming and camera previews — useful for privacy).
 - **Animations + masking by instance/type** — masking rules don't follow the animated bounding box. Solutions:
-  - Mask the parent view, OR
-  - Use `setDefaultMasking(true)` for the screen and reverse it on screen exit.
+    - Mask the parent view, OR
+    - Use `setDefaultMasking(true)` for the screen and reverse it on screen exit.
 - **Maps** — can be masked as a whole (captured as an image), but individual map elements cannot be selectively masked.
 - **Fragments with transition animations** — masking rules don't apply during transitions. Mask the container view instead of the fragment content.
 - **Rotated / scaled views** — bounding box no longer matches actual position; mask the parent or the entire window for safety.

@@ -1,11 +1,39 @@
 ---
 name: contentsquare-android-sdk
-description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs.
+description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs. Always starts with a mandatory Contentsquare project healthcheck (resolve the app applicationId, call the healthcheck endpoint, report project health) before any other work.
 ---
 
 # Contentsquare Android SDK Integration
 
 > Tested against CSQ SDK `1.11.x`. The official documentation is the source of truth — see the **References** section to fetch the latest pages on demand.
+
+## MANDATORY FIRST STEP — Contentsquare project healthcheck
+
+Before ANY Contentsquare work in a conversation — integration, debugging, configuration questions, code changes — run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
+
+1. **Announce it first.** Tell the user what you are about to do, for example:
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's application id, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+
+2. **Resolve the application id.** Read `applicationId` from `app/build.gradle` or `app/build.gradle.kts`. If it is absent, fall back to `namespace`, then to the `package` attribute in `AndroidManifest.xml`. Resolve any variables or flavour suffixes to the literal id that ships.
+
+3. **Call the endpoint.** The platform segment is literally `android` — no other value is accepted.
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<applicationId>.json"
+   ```
+
+4. **Report a short summary** of these values:
+
+   | Report | JSON path |
+   |---|---|
+   | Project ID | `cs_project_id` |
+   | Tracking enabled | `project_configurations.project_config.enabled` |
+   | Session Replay | `project_configurations.project_config.session_replay` — `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
+   | Enabled feature flags | `project_configurations.project_config.feature_flags` — only entries where `enabled == true`, with `name` and `min_version` |
+
+5. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong — re-check the `android` segment and the application id, and do not alter the path structure. A non-200 proxied from upstream means that application id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
 
 ## Definition of Done
 
@@ -131,13 +159,10 @@ fun HomeScreen() {
 The integration is verified end-to-end when **both** of these logs appear in the same run:
 
 1. **SDK boot** (always emitted):
-
    ```
    CSQ <version> for <Product Analytics|Experience Analytics> is attempting to start.
    ```
-
    and
-
    ```
    Contentsquare SDK <legacy-version> starting in app: <package>
    ```
@@ -220,16 +245,16 @@ CSQ.start(
 
 ### `AnalyticsOptions` (current options, v1.11.x)
 
-| Option                                   | Type               | Default                                  | Purpose                                                                                                                                    |
-| ---------------------------------------- | ------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `enableViewAutocapture`                  | `Boolean`          | `false`                                  | Auto-capture UI interactions and source pageviews (Android Views only — no Compose).                                                       |
-| `disablePageviewAutocapture`             | `Boolean`          | `false`                                  | Disable autocaptured source pageviews.                                                                                                     |
-| `enablePushNotificationAutocapture`      | `Boolean`          | `false`                                  | Auto-capture interactions on notifications.                                                                                                |
-| `enablePushNotificationTitleAutocapture` | `Boolean`          | `false`                                  | Capture notification title (requires `enablePushNotificationAutocapture = true`).                                                          |
-| `enablePushNotificationBodyAutocapture`  | `Boolean`          | `false`                                  | Capture notification body (requires `enablePushNotificationAutocapture = true`).                                                           |
-| `baseUri`                                | `URI`              | `URI("https://mh.bf.contentsquare.net")` | Base URI for the API endpoint.                                                                                                             |
-| `uploadInterval`                         | `Double` (seconds) | `15.0`                                   | Interval for event batch uploads.                                                                                                          |
-| `sessionReplayAutoStart`                 | `Boolean`          | `true`                                   | Set to `false` to disable automatic Session Replay start; control it manually with `CSQ.startSessionReplay()` / `CSQ.stopSessionReplay()`. |
+| Option | Type | Default | Purpose |
+|--------|------|---------|---------|
+| `enableViewAutocapture` | `Boolean` | `false` | Auto-capture UI interactions and source pageviews (Android Views only — no Compose). |
+| `disablePageviewAutocapture` | `Boolean` | `false` | Disable autocaptured source pageviews. |
+| `enablePushNotificationAutocapture` | `Boolean` | `false` | Auto-capture interactions on notifications. |
+| `enablePushNotificationTitleAutocapture` | `Boolean` | `false` | Capture notification title (requires `enablePushNotificationAutocapture = true`). |
+| `enablePushNotificationBodyAutocapture` | `Boolean` | `false` | Capture notification body (requires `enablePushNotificationAutocapture = true`). |
+| `baseUri` | `URI` | `URI("https://mh.bf.contentsquare.net")` | Base URI for the API endpoint. |
+| `uploadInterval` | `Double` (seconds) | `15.0` | Interval for event batch uploads. |
+| `sessionReplayAutoStart` | `Boolean` | `true` | Set to `false` to disable automatic Session Replay start; control it manually with `CSQ.startSessionReplay()` / `CSQ.stopSessionReplay()`. |
 
 `StartConfig.dxa()` also accepts an optional `AnalyticsOptions` parameter (e.g. to disable Session Replay auto-start in EA-only mode).
 
@@ -271,7 +296,7 @@ Verification: logcat shows `Source android_view_autocapture successfully registe
 
 ### Compose autocapture
 
-`enableViewAutocapture = true` does **NOT** cover Jetpack Compose — its doc string explicitly says _"Only for Android View system, no Compose support."_ For Compose autocapture, all THREE of the following are required:
+`enableViewAutocapture = true` does **NOT** cover Jetpack Compose — its doc string explicitly says *"Only for Android View system, no Compose support."* For Compose autocapture, all THREE of the following are required:
 
 1. `io.heap.gradle` plugin applied (same as for View autocapture above).
 2. The `sdk-compose` artifact already pulled in via `implementation("com.contentsquare.android:sdk-compose:<version>")` (it transitively brings `io.heap.autocapture:heap-autocapture-compose`).
@@ -390,7 +415,6 @@ Property values: `String`, `Number`, `Boolean`, or objects implementing the `Pro
 Default behavior: **everything is masked**. Unmask explicitly the elements you want visible.
 
 Views:
-
 - `CSQ.setDefaultMasking(masked: Boolean)` — Global default. Does not affect `EditText` / Compose `TextField`.
 - `CSQ.mask(view: View)` / `CSQ.unmask(view: View)` — Per-instance.
 - `CSQ.mask(type: Class<*>)` / `CSQ.unmask(type: Class<*>)` — Per-type. (EA)
@@ -399,30 +423,25 @@ Views:
 - `CSQ.ignoreInteractions(view: View)` / `view.csqIgnoreInteractions()` — Stop gesture tracking for a view.
 
 Compose:
-
 - `CsqMask(enable: Boolean) { content }` — Mask a composable subtree (Session Replay + analytics).
 - `CsqIgnoreInteraction(ignore: Boolean) { content }` — Ignore interactions on a subtree.
 - `CsqTag(CsqTag.ModalBottomSheetLayout) { content }` — Tag a composable for special handling (Heatmap/Zoning support of `ModalBottomSheetLayout`).
 
 Dialogs (Views) — extension functions in `com.contentsquare.api.sessionreplay`:
-
 - `AlertDialog.csqMask()`, `csqMaskTitle()`, `csqMaskMessage()`, `csqMaskPositiveButton()`, `csqMaskNegativeButton()` (and `csqUnmask…` counterparts).
 - `DatePickerDialog.csqMask()`, `csqMaskHeader()`, `csqMaskCalendar()`, `csqMaskButtonPanel()` (and `csqUnmask…` counterparts).
 - `TimePickerDialog.csqMask()`, `csqMaskHeader()`, `csqMaskRadialPicker()`, `csqMaskInputMode()`, `csqMaskButtonPanel()` (and `csqUnmask…` counterparts).
 - Call these immediately after `dialog.show()` on the main thread.
 
 Menus (Views):
-
 - `CSQ.maskMenuItem(itemId)` / `CSQ.unmaskMenuItem(itemId)` — Mask/unmask a single menu entry.
 
 Where to call masking:
-
 - **Activity**: in `onCreate()`.
 - **Fragment**: in `onViewCreated()`.
 - Always before the first draw, on the UI thread.
 
 Limitations to keep in mind:
-
 - Animations are not supported when masking by instance or by type — mask the parent or the entire screen instead.
 - Compose: masking by **type** is not available; wrap a parent composable in `CsqMask` instead.
 - `SurfaceView`, `MapView` content cannot be partially masked.
@@ -635,11 +654,11 @@ ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObser
 
 If the host app already declares the CSQ SDK (`com.contentsquare.android:sdk`) at an older version, load the matching migration guide **before** touching anything else:
 
-| Current version   | Target version | Guide                                                                        |
-| ----------------- | -------------- | ---------------------------------------------------------------------------- |
-| `1.0.x` – `1.5.x` | `1.11.x`       | [`references/migration-1.5-to-1.11.md`](references/migration-1.5-to-1.11.md) |
+| Current version | Target version | Guide |
+|---|---|---|
+| `1.0.x` – `1.5.x` | `1.11.x` | [`references/migration-1.5-to-1.11.md`](references/migration-1.5-to-1.11.md) |
 
-For migrations from the **Classic Contentsquare SDK** (`com.contentsquare.android:library`) or the **Heap Core + Contentsquare** combo, fetch the dedicated `upgrade-from-cs-sdk` / `upgrade-from-heap-and-cs-sdk` pages from the Contentsquare docs (see the _References_ section below) — those paths are not covered by this skill.
+For migrations from the **Classic Contentsquare SDK** (`com.contentsquare.android:library`) or the **Heap Core + Contentsquare** combo, fetch the dedicated `upgrade-from-cs-sdk` / `upgrade-from-heap-and-cs-sdk` pages from the Contentsquare docs (see the *References* section below) — those paths are not covered by this skill.
 
 ## References
 
@@ -660,14 +679,12 @@ The official Contentsquare docs expose Markdown versions of every page — fetch
 - **Sample Android app (GitHub):** https://github.com/ContentSquare/contentsquare-android-sample
 
 When to load each reference:
-
 - Need exact method signatures or full parameter lists → fetch the API reference.
 - Implementing or debugging masking → fetch the Session Replay page.
 - Compatibility / version conflicts (Kotlin, Compose, dependencies) → fetch the Compatibility page.
 - Migrating from the Classic Contentsquare SDK or Heap → fetch the corresponding `upgrade-from-…` page from `llms.txt`.
 
 Local mirror of selected references is also available next to this skill:
-
 - [references/api-reference.md](references/api-reference.md)
 - [references/session-replay.md](references/session-replay.md)
 - [references/migration-1.5-to-1.11.md](references/migration-1.5-to-1.11.md)
