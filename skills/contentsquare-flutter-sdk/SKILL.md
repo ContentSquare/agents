@@ -1,17 +1,55 @@
 ---
 name: contentsquare-flutter-sdk
-description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.4.x.
+description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.4.x.
 ---
 
 # Contentsquare Flutter SDK Integration
 
 > This skill helps AI agents integrate or upgrade the Contentsquare Flutter SDK in client applications.
 
+## MANDATORY FIRST STEP -- Contentsquare project healthcheck
+
+Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
+
+1. **Announce it first.** Tell the user what you are about to do, for example:
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle ids, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+
+2. **Resolve the bundle ids -- a Flutter app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
+
+   | Platform | Where to read it |
+   |---|---|
+   | Android | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`) |
+   | iOS | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `ios/Runner/Info.plist`), resolving any `$(...)` variables |
+
+3. **Call the endpoint once per platform that exists.** The platform segment must be literally `ios` or `android`. There is no Flutter platform value -- never send one.
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<androidApplicationId>.json"
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<iosBundleId>.json"
+   ```
+
+   If only one platform is present in the project, query only that one. If you cannot resolve one of the ids, ask the user which platform to check rather than guessing.
+
+4. **Report a short summary** of these values, per platform queried:
+
+   | Report | JSON path |
+   |---|---|
+   | Project ID | `cs_project_id` |
+   | Tracking enabled | `project_configurations.project_config.enabled` |
+   | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
+   | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
+
+   Android and iOS may map to different Contentsquare projects. If the two responses differ, call that out explicitly.
+
+5. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
+
 ## Install
 
 ```yaml
 dependencies:
-  contentsquare: ^4.4.2
+  contentsquare: ^4.4.0
 ```
 
 Then run `flutter pub get`.
