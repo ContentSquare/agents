@@ -46,12 +46,12 @@ function App() {
 ## CSQ with Data Source ID
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
 CSQ.start(
-  StartConfig.withDataSourceId("your-datasource-id", {
+  StartConfig.withDataSourceId('your-datasource-id', {
     sessionReplayAutoStart: true,
-  }),
+  })
 );
 ```
 
@@ -90,7 +90,7 @@ function ConsentScreen() {
 ## Track a Purchase / Transaction
 
 ```typescript
-import { CSQ, Currency } from "@contentsquare/react-native-bridge";
+import { CSQ, Currency } from '@contentsquare/react-native-bridge';
 
 function handlePurchase(amount: number, orderId: string) {
   CSQ.trackTransaction({
@@ -100,10 +100,10 @@ function handlePurchase(amount: number, orderId: string) {
   });
 
   // Also track as event with properties
-  CSQ.trackEvent("purchase_completed", {
+  CSQ.trackEvent('purchase_completed', {
     order_id: orderId,
     amount: amount,
-    payment_method: "credit_card",
+    payment_method: 'credit_card',
   });
 }
 ```
@@ -113,25 +113,25 @@ function handlePurchase(amount: number, orderId: string) {
 ## Custom Event with Properties
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Simple event
-CSQ.trackEvent("button_clicked");
+CSQ.trackEvent('button_clicked');
 
 // Event with properties
-CSQ.trackEvent("product_viewed", {
-  product_id: "sku_123",
-  product_name: "Wireless Mouse",
+CSQ.trackEvent('product_viewed', {
+  product_id: 'sku_123',
+  product_name: 'Wireless Mouse',
   price: 29.99,
-  category: "electronics",
+  category: 'electronics',
   in_stock: true,
 });
 
 // Search event
-CSQ.trackEvent("search_performed", {
-  query: "wireless keyboard",
+CSQ.trackEvent('search_performed', {
+  query: 'wireless keyboard',
   results_count: 42,
-  category_filter: "electronics",
+  category_filter: 'electronics',
 });
 ```
 
@@ -140,15 +140,15 @@ CSQ.trackEvent("search_performed", {
 ## User Identity Management
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Product Analytics - Set user identity
 function handleLogin(userId: string) {
   CSQ.identify(userId);
 
   CSQ.addUserProperties({
-    subscription_tier: "premium",
-    account_created_date: "2024-01-15",
+    subscription_tier: 'premium',
+    account_created_date: '2024-01-15',
     email_verified: true,
   });
 }
@@ -169,17 +169,17 @@ function handleDXALogin(userId: string) {
 ## Dynamic Variables (DXA Only)
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // String dynamic var
-CSQ.addDynamicVar("user_segment", "high_value");
+CSQ.addDynamicVar('user_segment', 'high_value');
 
 // Number dynamic var
-CSQ.addDynamicVar("ab_test_variant", 2);
+CSQ.addDynamicVar('ab_test_variant', 2);
 
 // With error handling
-CSQ.addDynamicVar("page_depth", 5, error => {
-  console.error("Dynamic var error:", error.message);
+CSQ.addDynamicVar('page_depth', 5, error => {
+  console.error('Dynamic var error:', error.message);
 });
 ```
 
@@ -451,13 +451,13 @@ function SessionReplayLink() {
 ## On-Demand Session Replay
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
 // Start SDK without auto-starting session replay
 CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
+  StartConfig.withEnvironmentId('your-env-id', {
     sessionReplayAutoStart: false, // Don't start SR automatically
-  }),
+  })
 );
 
 // Later, start session replay when needed (e.g., entering checkout)
@@ -477,21 +477,21 @@ function exitCheckout() {
 ## Event Properties (Global)
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Add properties to all future events
 CSQ.addEventProperties({
-  app_version: "2.1.0",
-  build_number: "456",
-  environment: "production",
+  app_version: '2.1.0',
+  build_number: '456',
+  environment: 'production',
 });
 
 // Track events - properties are automatically included
-CSQ.trackEvent("button_clicked");
-CSQ.trackEvent("screen_viewed");
+CSQ.trackEvent('button_clicked');
+CSQ.trackEvent('screen_viewed');
 
 // Remove a specific property
-CSQ.removeEventProperty("build_number");
+CSQ.removeEventProperty('build_number');
 
 // Clear all event properties
 CSQ.clearEventProperties();
@@ -527,14 +527,14 @@ function SensitiveScreen() {
 ## URL Masking for Error Tracking
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Mask sensitive URL patterns in error tracking
 CSQ.setUrlMaskingPatterns([
-  "/api/user/*/private",
-  "/admin/*",
-  "/secure/*",
-  "/payment/*/details",
+  '/api/user/*/private',
+  '/admin/*',
+  '/secure/*',
+  '/payment/*/details',
 ]);
 ```
 
@@ -543,7 +543,7 @@ CSQ.setUrlMaskingPatterns([
 ## Debug Logging
 
 ```typescript
-import { CSQ, LogLevel, LogChannel } from "@contentsquare/react-native-bridge";
+import { CSQ, LogLevel, LogChannel } from '@contentsquare/react-native-bridge';
 
 // Enable verbose logging for development
 if (__DEV__) {
@@ -630,7 +630,7 @@ import type {
   CSQMaskProps,
   LogLevel,
   LogChannel,
-} from "@contentsquare/react-native-bridge";
+} from '@contentsquare/react-native-bridge';
 
 // Example usage
 const options: AnalyticsOptions = {
@@ -641,11 +641,11 @@ const options: AnalyticsOptions = {
 const transaction: Transaction = {
   price: 99.99,
   currency: Currency.USD,
-  id: "order_123",
+  id: 'order_123',
 };
 
 const customVars: CustomVar[] = [
-  { index: 1, key: "product_id", value: "12345" },
+  { index: 1, key: 'product_id', value: '12345' },
 ];
 ```
 
@@ -654,25 +654,25 @@ const customVars: CustomVar[] = [
 ## Platform-Specific Code
 
 ```typescript
-import { Platform } from "react-native";
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { Platform } from 'react-native';
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // iOS-specific configuration
-if (Platform.OS === "ios") {
+if (Platform.OS === 'ios') {
   CSQ.start(
-    StartConfig.withEnvironmentId("your-env-id", {
+    StartConfig.withEnvironmentId('your-env-id', {
       disableInteractionTextCapture: true,
       disablePageviewTitleAutocapture: true,
-    }),
+    })
   );
 }
 
 // Android-specific configuration
-if (Platform.OS === "android") {
+if (Platform.OS === 'android') {
   CSQ.start(
-    StartConfig.withEnvironmentId("your-env-id", {
+    StartConfig.withEnvironmentId('your-env-id', {
       uploadInterval: 5000,
-    }),
+    })
   );
 }
 ```

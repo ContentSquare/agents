@@ -23,12 +23,12 @@ The Contentsquare SDK includes in-app features for testing and debugging:
 
 ### Platform Differences
 
-| Feature                 | Android                | iOS                                    |
-| ----------------------- | ---------------------- | -------------------------------------- |
-| **Setup Required**      | None                   | Custom URL scheme + deeplink handling  |
-| **Activation Method**   | QR code or ADB command | QR code, deeplink, or Terminal command |
-| **Background Launch**   | Required               | Not required                           |
-| **Code Implementation** | Automatic              | Manual deeplink handler                |
+| Feature | Android | iOS |
+|---------|---------|-----|
+| **Setup Required** | None | Custom URL scheme + deeplink handling |
+| **Activation Method** | QR code or ADB command | QR code, deeplink, or Terminal command |
+| **Background Launch** | Required | Not required |
+| **Code Implementation** | Automatic | Manual deeplink handler |
 
 ## Android Setup
 
@@ -49,7 +49,6 @@ The Contentsquare SDK includes in-app features for testing and debugging:
 3. Scan the QR code with your phone
 
 **QR Code Reader Options**:
-
 - Built-in camera app QR reader (if supported)
 - [QR & Barcode Reader by TeaCapps](https://play.google.com/store/apps/details?id=com.teacapps.barcodescanner)
 
@@ -64,7 +63,6 @@ adb shell am start -W -a android.intent.action.VIEW -d "cs-{{packageName}}://con
 ```
 
 Replace placeholders:
-
 - `{{packageName}}`: Your app's package name (e.g., `com.example.app`)
 - `{{uniqueActivationKey}}`: Provided by Contentsquare
 - `{{userId}}`: Your user ID
@@ -148,7 +146,6 @@ export default App;
 ```
 
 **Key Points**:
-
 - `getInitialURL()`: Handles deeplink when app is **launched** (cold start)
 - `addEventListener('url', ...)`: Handles deeplink when app is **already running**
 - `CSQ.handleUrl(url)`: Forwards the deeplink to the SDK
@@ -180,7 +177,6 @@ Once setup is complete, activate in-app features using one of these methods:
 5. Paste and navigate to the link
 
 **Deeplink Format**:
-
 ```
 cs-com.example.app://contentsquare.com?activationKey=XXXXX&userId=XXXXX
 ```
@@ -232,7 +228,6 @@ By default, only the SDK start log is visible:
 ```
 
 **Example logs**:
-
 ```text
 CSLIB ℹ️ Info: CSQ 6.1.0 is attempting to start Digital eXperience Analytics.
 CSLIB ℹ️ Info: Screen tracked: HomeScreen
@@ -254,7 +249,6 @@ adb logcat | grep "CSLIB"
 ```
 
 **Example logs**:
-
 ```text
 I/CSLIB: CSQ 6.1.0 is attempting to start Digital eXperience Analytics.
 I/CSLIB: Screen tracked: HomeScreen
@@ -266,12 +260,10 @@ I/CSLIB: Transaction tracked: order_123
 **SDK Log Visualizer** allows viewing logs directly on the platform:
 
 **Requirements**:
-
 - Platform access for your project
 - In-app features enabled on your device
 
 **How to Use**:
-
 1. Enable in-app features on your device
 2. Navigate to the Log Visualizer on the Contentsquare platform
 3. View real-time logs from your device
@@ -280,24 +272,22 @@ See [SDK Log Visualizer Help Center Article](https://support.contentsquare.com/h
 
 ### Log Types
 
-| Log Type    | Purpose                 | Example                          |
-| ----------- | ----------------------- | -------------------------------- |
-| **Info**    | General SDK activity    | SDK start, screen tracking       |
-| **Warning** | Non-critical issues     | Missing screen name              |
-| **Error**   | Critical issues         | API errors, configuration errors |
-| **Debug**   | Detailed debugging info | Event payloads, network requests |
+| Log Type | Purpose | Example |
+|----------|---------|---------|
+| **Info** | General SDK activity | SDK start, screen tracking |
+| **Warning** | Non-critical issues | Missing screen name |
+| **Error** | Critical issues | API errors, configuration errors |
+| **Debug** | Detailed debugging info | Event payloads, network requests |
 
 ### Filtering Logs
 
 **iOS (Console App)**:
-
 ```
 Subsystem: CSLIB
 Category: Analytics, SessionReplay, etc.
 ```
 
 **Android (Logcat)**:
-
 ```bash
 # Filter by tag
 adb logcat CSLIB:I *:S
@@ -313,19 +303,18 @@ Screenshot capture enables Zoning Analysis on the Contentsquare platform.
 ### Prerequisites
 
 **Critical**: For screenshot capture to work:
-
 1. ✅ Session must be tracked (user opted in)
 2. ✅ At least one screenview event sent
 3. ✅ In-app features enabled
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // 1. User opts in
 CSQ.optIn();
 
 // 2. Track a screen
-CSQ.trackScreenview("HomeScreen");
+CSQ.trackScreenview('HomeScreen');
 
 // 3. Enable in-app features (via QR code/deeplink)
 // 4. Screenshots can now be captured
@@ -343,7 +332,6 @@ The screenshot is uploaded to the Contentsquare platform and becomes available i
 ### Using Screenshots in Zoning Analysis
 
 Screenshots enable zone-level metrics:
-
 - **Tap rate**: Where users tap on the screen
 - **Swipe rate**: Where users swipe
 - **Exposure rate**: Which zones are viewed
@@ -375,28 +363,25 @@ Screenshots enable zone-level metrics:
 **Solutions**:
 
 1. **Verify app is in background**:
-
    ```bash
    # Check if app is running
    adb shell ps | grep com.example.app
    ```
 
 2. **Check package name**:
-
    ```bash
    # Verify package name matches
    adb shell pm list packages | grep com.example.app
    ```
 
 3. **Test ADB command manually**:
-
    ```bash
    adb shell am start -W -a android.intent.action.VIEW -d "cs-com.example.app://contentsquare.com?activationKey=XXXXX&userId=XXXXX"
    ```
 
 4. **Check SDK version**:
    ```typescript
-   import { CSQ } from "@contentsquare/react-native-bridge";
+   import { CSQ } from '@contentsquare/react-native-bridge';
    // Check logs for SDK version
    ```
 
@@ -407,28 +392,24 @@ Screenshots enable zone-level metrics:
 **Solutions**:
 
 1. **Verify URL scheme in Info.plist**:
-
    ```bash
    # Check Info.plist
    cat ios/YourApp/Info.plist | grep "CFBundleURLSchemes" -A 2
    ```
-
    Should show: `<string>cs-$(PRODUCT_BUNDLE_IDENTIFIER)</string>`
 
 2. **Test deeplink handling**:
-
    ```typescript
-   import { Linking } from "react-native";
-
+   import { Linking } from 'react-native';
+   
    // Add debug logging
-   Linking.addEventListener("url", event => {
-     console.log("Received URL:", event.url);
+   Linking.addEventListener('url', (event) => {
+     console.log('Received URL:', event.url);
      CSQ.handleUrl(event.url);
    });
    ```
 
 3. **Verify bundle identifier**:
-
    ```bash
    # Check bundle ID in Xcode project settings
    # Should match URL scheme (cs-com.example.app)
@@ -450,11 +431,10 @@ Screenshots enable zone-level metrics:
    - Verify in-app features menu appears
 
 2. **Check log filtering**:
-
    ```bash
    # iOS
    xcrun simctl spawn booted log stream --predicate 'subsystem == "CSLIB"'
-
+   
    # Android
    adb logcat | grep -i "cslib\|contentsquare"
    ```
@@ -475,26 +455,23 @@ Screenshots enable zone-level metrics:
 **Solutions**:
 
 1. **Verify prerequisites**:
-
    ```typescript
    // Ensure all prerequisites are met
    CSQ.optIn(); // 1. Opt in
-   CSQ.trackScreenview("TestScreen"); // 2. Track screen
+   CSQ.trackScreenview('TestScreen'); // 2. Track screen
    // 3. Enable in-app features
    ```
 
 2. **Check session tracking**:
-
    ```typescript
    // Verify user is not opted out
    CSQ.optIn();
    ```
 
 3. **Send screenview event**:
-
    ```typescript
    // Ensure screen is tracked before capture
-   CSQ.trackScreenview("CurrentScreen");
+   CSQ.trackScreenview('CurrentScreen');
    ```
 
 4. **Check network connectivity**:
@@ -508,27 +485,25 @@ Screenshots enable zone-level metrics:
 **Solutions**:
 
 1. **Check Linking setup**:
-
    ```typescript
-   import { Linking } from "react-native";
-
+   import { Linking } from 'react-native';
+   
    useEffect(() => {
      // Log all deeplinks for debugging
-     const subscription = Linking.addEventListener("url", event => {
-       console.log("Deeplink received:", event.url);
+     const subscription = Linking.addEventListener('url', (event) => {
+       console.log('Deeplink received:', event.url);
        CSQ.handleUrl(event.url);
      });
-
+     
      return () => subscription.remove();
    }, []);
    ```
 
 2. **Test initial URL handling**:
-
    ```typescript
    useEffect(() => {
      Linking.getInitialURL().then(url => {
-       console.log("Initial URL:", url);
+       console.log('Initial URL:', url);
        if (url) CSQ.handleUrl(url);
      });
    }, []);
@@ -548,7 +523,6 @@ Error: Activity not started, unable to resolve Intent
 ```
 
 **Solution**: Verify package name and ensure app is installed:
-
 ```bash
 adb shell pm list packages | grep com.example.app
 ```
@@ -556,7 +530,6 @@ adb shell pm list packages | grep com.example.app
 #### iOS: "No app registered for URL scheme"
 
 **Solution**: Clean and rebuild the app:
-
 ```bash
 cd ios
 rm -rf Pods Podfile.lock

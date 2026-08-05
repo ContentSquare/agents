@@ -185,12 +185,12 @@ If your app combines native and React Native screens:
 
 ```typescript
 // React Native checkout screen
-import { CSQ, Currency } from "@contentsquare/react-native-bridge";
+import { CSQ, Currency } from '@contentsquare/react-native-bridge';
 
 CSQ.trackTransaction({
   price: 29.99,
   currency: Currency.USD,
-  id: "order_123",
+  id: 'order_123',
 });
 ```
 
@@ -232,9 +232,9 @@ Contentsquare.trackTransaction(
 **Workaround**: Pause tracking during pan gestures:
 
 ```javascript
-import { useRef } from "react";
-import { PanResponder } from "react-native";
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { useRef } from 'react';
+import { PanResponder } from 'react-native';
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 const panResponder = useRef(
   PanResponder.create({
@@ -246,7 +246,7 @@ const panResponder = useRef(
       CSQ.resumeTracking(); // Resume when pan ends
       // Your release logic
     },
-  }),
+  })
 ).current;
 ```
 
@@ -265,8 +265,8 @@ const panResponder = useRef(
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo"],
-    plugins: ["@contentsquare/react-native-bridge/babel"],
+    presets: ['babel-preset-expo'],
+    plugins: ['@contentsquare/react-native-bridge/babel'],
   };
 };
 ```

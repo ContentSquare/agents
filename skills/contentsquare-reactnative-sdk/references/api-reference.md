@@ -18,8 +18,8 @@ Starts the SDK. Must be called before any other CSQ method. Call as early as pos
 
 **Parameters:**
 
-| Parameter | Type         | Default             | Description            |
-| --------- | ------------ | ------------------- | ---------------------- |
+| Parameter | Type         | Default            | Description            |
+| --------- | ------------ | ------------------ | ---------------------- |
 | `config`  | `CSQConfig?` | `StartConfig.dxa()` | SDK mode configuration |
 
 **StartConfig variants:**
@@ -30,17 +30,17 @@ CSQ.start(StartConfig.dxa());
 
 // Product Analytics with environment ID
 CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
+  StartConfig.withEnvironmentId('your-env-id', {
     enableRNAutocapture: true,
     sessionReplayAutoStart: true,
-  }),
+  })
 );
 
 // CSQ with data source ID
 CSQ.start(
-  StartConfig.withDataSourceId("your-datasource-id", {
+  StartConfig.withDataSourceId('your-datasource-id', {
     sessionReplayAutoStart: true,
-  }),
+  })
 );
 ```
 
@@ -113,7 +113,7 @@ Set user identity for Product Analytics. Calling with a different ID triggers a 
 **Example:**
 
 ```typescript
-CSQ.identify("user_12345");
+CSQ.identify('user_12345');
 ```
 
 ### resetIdentity (Product Analytics only)
@@ -170,12 +170,12 @@ type CustomVar = {
 **Example:**
 
 ```typescript
-CSQ.trackScreenview("ProductDetails");
+CSQ.trackScreenview('ProductDetails');
 
-CSQ.trackScreenview("ProductDetails", [
-  { index: 1, key: "product_id", value: "12345" },
-  { index: 2, key: "category", value: "electronics" },
-  { index: 3, key: "price_range", value: "50-100" },
+CSQ.trackScreenview('ProductDetails', [
+  { index: 1, key: 'product_id', value: '12345' },
+  { index: 2, key: 'category', value: 'electronics' },
+  { index: 3, key: 'price_range', value: '50-100' },
 ]);
 ```
 
@@ -212,19 +212,19 @@ ISO 4217 currency codes (e.g., `Currency.USD`, `Currency.EUR`, `Currency.GBP`, `
 **Example:**
 
 ```typescript
-import { CSQ, Currency } from "@contentsquare/react-native-bridge";
+import { CSQ, Currency } from '@contentsquare/react-native-bridge';
 
 CSQ.trackTransaction({
   price: 29.99,
   currency: Currency.USD,
-  id: "order_123",
+  id: 'order_123',
 });
 
 // With string currency (also supported)
 CSQ.trackTransaction({
   price: 49.99,
-  currency: "EUR",
-  id: "order_456",
+  currency: 'EUR',
+  id: 'order_456',
 });
 ```
 
@@ -250,12 +250,12 @@ Track a named event with optional properties.
 **Example:**
 
 ```typescript
-CSQ.trackEvent("add_to_cart");
+CSQ.trackEvent('add_to_cart');
 
-CSQ.trackEvent("purchase_completed", {
-  product_id: "12345",
+CSQ.trackEvent('purchase_completed', {
+  product_id: '12345',
   amount: 99.99,
-  payment_method: "credit_card",
+  payment_method: 'credit_card',
   is_first_purchase: true,
 });
 ```
@@ -284,14 +284,14 @@ Add a session-level dynamic variable.
 
 ```typescript
 // String value
-CSQ.addDynamicVar("user_segment", "high_value");
+CSQ.addDynamicVar('user_segment', 'high_value');
 
 // Number value
-CSQ.addDynamicVar("ab_test_variant", 2);
+CSQ.addDynamicVar('ab_test_variant', 2);
 
 // With error callback
-CSQ.addDynamicVar("page_number", -1, error => {
-  console.error("Invalid dynamic var:", error.message);
+CSQ.addDynamicVar('page_number', -1, error => {
+  console.error('Invalid dynamic var:', error.message);
   // Error: value must be unsigned integer
 });
 ```
@@ -312,7 +312,7 @@ Set user-level properties that persist across sessions.
 
 ```typescript
 CSQ.addUserProperties({
-  subscription_tier: "premium",
+  subscription_tier: 'premium',
   account_age_days: 30,
   is_verified: true,
 });
@@ -332,8 +332,8 @@ Set properties that will be automatically added to all future tracked events.
 
 ```typescript
 CSQ.addEventProperties({
-  app_version: "2.1.0",
-  environment: "production",
+  app_version: '2.1.0',
+  environment: 'production',
 });
 ```
 
@@ -348,7 +348,7 @@ Remove a single event property.
 **Example:**
 
 ```typescript
-CSQ.removeEventProperty("environment");
+CSQ.removeEventProperty('environment');
 ```
 
 ### clearEventProperties (Product Analytics only)
@@ -384,9 +384,9 @@ CSQ.startSessionReplay();
 
 ```typescript
 CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
+  StartConfig.withEnvironmentId('your-env-id', {
     sessionReplayAutoStart: true, // Automatically start session replay
-  }),
+  })
 );
 ```
 
@@ -460,13 +460,13 @@ interface CSQMetadata {
 **Example:**
 
 ```typescript
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 useEffect(() => {
   const unsubscribe = CSQ.onMetadataChange(metadata => {
-    console.log("Session Replay URL:", metadata.sessionReplayUrl);
-    console.log("Session ID:", metadata.sessionID);
-    console.log("User ID:", metadata.userID);
+    console.log('Session Replay URL:', metadata.sessionReplayUrl);
+    console.log('Session ID:', metadata.sessionID);
+    console.log('User ID:', metadata.userID);
 
     // Send replay URL to customer support, analytics, etc.
     if (metadata.sessionReplayUrl) {
@@ -497,7 +497,7 @@ Mask sensitive URL paths in error tracking. Email addresses are automatically ma
 **Example:**
 
 ```typescript
-CSQ.setUrlMaskingPatterns(["/api/user/*/private", "/admin/*", "/secure/*"]);
+CSQ.setUrlMaskingPatterns(['/api/user/*/private', '/admin/*', '/secure/*']);
 ```
 
 ---
@@ -515,7 +515,7 @@ Set the SDK log level.
 **LogLevel enum:**
 
 ```typescript
-import { CSQ, LogLevel } from "@contentsquare/react-native-bridge";
+import { CSQ, LogLevel } from '@contentsquare/react-native-bridge';
 
 CSQ.setLogLevel(LogLevel.VERBOSE);
 CSQ.setLogLevel(LogLevel.INFO);
@@ -535,7 +535,7 @@ Set the log output channel.
 **LogChannel enum:**
 
 ```typescript
-import { CSQ, LogChannel } from "@contentsquare/react-native-bridge";
+import { CSQ, LogChannel } from '@contentsquare/react-native-bridge';
 
 CSQ.setLogChannel(LogChannel.CONSOLE);
 CSQ.setLogChannel(LogChannel.NATIVE);
@@ -564,7 +564,7 @@ Create a config for DXA-only mode (no Product Analytics).
 **Example:**
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
 CSQ.start(StartConfig.dxa());
 ```
@@ -586,10 +586,10 @@ Create a config for Product Analytics with Heap environment ID.
 
 ```typescript
 CSQ.start(
-  StartConfig.withEnvironmentId("heap-env-123", {
+  StartConfig.withEnvironmentId('heap-env-123', {
     enableRNAutocapture: true,
     sessionReplayAutoStart: true,
-  }),
+  })
 );
 ```
 
@@ -610,9 +610,9 @@ Create a config for CSQ with data source ID.
 
 ```typescript
 CSQ.start(
-  StartConfig.withDataSourceId("datasource-123", {
+  StartConfig.withDataSourceId('datasource-123', {
     uploadInterval: 10000,
-  }),
+  })
 );
 ```
 

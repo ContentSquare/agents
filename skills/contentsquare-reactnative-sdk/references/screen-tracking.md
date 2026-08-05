@@ -41,9 +41,9 @@ function ProductScreen({ productId, category }: Props) {
 
 ```typescript
 type CustomVar = {
-  index: number; // Must be 1-20
-  key: string; // Max 50 characters
-  value: string; // Max 255 characters
+  index: number;  // Must be 1-20
+  key: string;    // Max 50 characters
+  value: string;  // Max 255 characters
 };
 ```
 
@@ -260,8 +260,8 @@ function App() {
         const previousRouteName = routeNameRef.current;
         const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
 
-        if (previousRouteName !== currentRouteName &&
-            currentRouteName &&
+        if (previousRouteName !== currentRouteName && 
+            currentRouteName && 
             shouldTrackRoute(currentRouteName)) {
           CSQ.trackScreenview(currentRouteName);
         }
@@ -445,7 +445,7 @@ function App() {
     }
 
     const route = state.routes[state.index];
-
+    
     if (route.state) {
       return getActiveRouteName(route.state);
     }
@@ -615,18 +615,18 @@ onStateChange={() => {
 ## TypeScript Types
 
 ```typescript
-import type { CustomVar } from "@contentsquare/react-native-bridge";
+import type { CustomVar } from '@contentsquare/react-native-bridge';
 
 // Screen tracking function signature
 declare function trackScreenview(
   screenName: string,
-  customVars?: CustomVar[],
+  customVars?: CustomVar[]
 ): void;
 
 // CustomVar type
 type CustomVar = {
-  index: number; // 1-20
-  key: string; // max 50 chars
-  value: string; // max 255 chars
+  index: number;  // 1-20
+  key: string;    // max 50 chars
+  value: string;  // max 255 chars
 };
 ```
