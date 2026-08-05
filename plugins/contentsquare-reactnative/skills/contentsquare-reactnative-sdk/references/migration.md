@@ -12,41 +12,41 @@ If you're using the deprecated `Contentsquare` default export, migrate to `CSQ` 
 
 ```typescript
 // Before (deprecated)
-import Contentsquare from "@contentsquare/react-native-bridge";
+import Contentsquare from '@contentsquare/react-native-bridge';
 
 // After (recommended)
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 ```
 
 ### API Method Mapping
 
-| Legacy `Contentsquare`                  | Current `CSQ`                 | Notes                           |
-| --------------------------------------- | ----------------------------- | ------------------------------- |
-| `Contentsquare.start()`                 | `CSQ.start(config)`           | Config parameter now required   |
-| `Contentsquare.stop()`                  | `CSQ.stop()`                  | Same signature                  |
-| `Contentsquare.optIn()`                 | `CSQ.optIn()`                 | Same signature                  |
-| `Contentsquare.optOut()`                | `CSQ.optOut()`                | Same signature                  |
-| `Contentsquare.identify()`              | `CSQ.identify()`              | Same signature                  |
-| `Contentsquare.resetIdentity()`         | `CSQ.resetIdentity()`         | Same signature                  |
-| `Contentsquare.sendUserIdentifier()`    | `CSQ.sendUserIdentifier()`    | Same signature                  |
-| `Contentsquare.trackScreenview()`       | `CSQ.trackScreenview()`       | Same signature                  |
-| `Contentsquare.trackTransaction()`      | `CSQ.trackTransaction()`      | Same signature                  |
-| `Contentsquare.trackEvent()`            | `CSQ.trackEvent()`            | Same signature                  |
-| `Contentsquare.addDynamicVar()`         | `CSQ.addDynamicVar()`         | Different signature - see below |
-| `Contentsquare.addUserProperties()`     | `CSQ.addUserProperties()`     | Same signature                  |
-| `Contentsquare.addEventProperties()`    | `CSQ.addEventProperties()`    | Same signature                  |
-| `Contentsquare.removeEventProperty()`   | `CSQ.removeEventProperty()`   | Same signature                  |
-| `Contentsquare.clearEventProperties()`  | `CSQ.clearEventProperties()`  | Same signature                  |
-| `Contentsquare.startSessionReplay()`    | `CSQ.startSessionReplay()`    | Same signature                  |
-| `Contentsquare.stopSessionReplay()`     | `CSQ.stopSessionReplay()`     | Same signature                  |
-| `Contentsquare.setDefaultMasking()`     | `CSQ.setDefaultMasking()`     | Same signature                  |
-| `Contentsquare.pauseTracking()`         | `CSQ.pauseTracking()`         | Same signature                  |
-| `Contentsquare.resumeTracking()`        | `CSQ.resumeTracking()`        | Same signature                  |
-| `Contentsquare.setLogLevel()`           | `CSQ.setLogLevel()`           | Same signature                  |
-| `Contentsquare.setLogChannel()`         | `CSQ.setLogChannel()`         | Same signature                  |
-| `Contentsquare.logToConsole()`          | `CSQ.logToConsole()`          | Same signature                  |
-| `Contentsquare.onMetadataChange()`      | `CSQ.onMetadataChange()`      | Same signature                  |
-| `Contentsquare.setUrlMaskingPatterns()` | `CSQ.setUrlMaskingPatterns()` | Same signature                  |
+| Legacy `Contentsquare` | Current `CSQ` | Notes |
+|------------------------|---------------|-------|
+| `Contentsquare.start()` | `CSQ.start(config)` | Config parameter now required |
+| `Contentsquare.stop()` | `CSQ.stop()` | Same signature |
+| `Contentsquare.optIn()` | `CSQ.optIn()` | Same signature |
+| `Contentsquare.optOut()` | `CSQ.optOut()` | Same signature |
+| `Contentsquare.identify()` | `CSQ.identify()` | Same signature |
+| `Contentsquare.resetIdentity()` | `CSQ.resetIdentity()` | Same signature |
+| `Contentsquare.sendUserIdentifier()` | `CSQ.sendUserIdentifier()` | Same signature |
+| `Contentsquare.trackScreenview()` | `CSQ.trackScreenview()` | Same signature |
+| `Contentsquare.trackTransaction()` | `CSQ.trackTransaction()` | Same signature |
+| `Contentsquare.trackEvent()` | `CSQ.trackEvent()` | Same signature |
+| `Contentsquare.addDynamicVar()` | `CSQ.addDynamicVar()` | Different signature - see below |
+| `Contentsquare.addUserProperties()` | `CSQ.addUserProperties()` | Same signature |
+| `Contentsquare.addEventProperties()` | `CSQ.addEventProperties()` | Same signature |
+| `Contentsquare.removeEventProperty()` | `CSQ.removeEventProperty()` | Same signature |
+| `Contentsquare.clearEventProperties()` | `CSQ.clearEventProperties()` | Same signature |
+| `Contentsquare.startSessionReplay()` | `CSQ.startSessionReplay()` | Same signature |
+| `Contentsquare.stopSessionReplay()` | `CSQ.stopSessionReplay()` | Same signature |
+| `Contentsquare.setDefaultMasking()` | `CSQ.setDefaultMasking()` | Same signature |
+| `Contentsquare.pauseTracking()` | `CSQ.pauseTracking()` | Same signature |
+| `Contentsquare.resumeTracking()` | `CSQ.resumeTracking()` | Same signature |
+| `Contentsquare.setLogLevel()` | `CSQ.setLogLevel()` | Same signature |
+| `Contentsquare.setLogChannel()` | `CSQ.setLogChannel()` | Same signature |
+| `Contentsquare.logToConsole()` | `CSQ.logToConsole()` | Same signature |
+| `Contentsquare.onMetadataChange()` | `CSQ.onMetadataChange()` | Same signature |
+| `Contentsquare.setUrlMaskingPatterns()` | `CSQ.setUrlMaskingPatterns()` | Same signature |
 
 ### addDynamicVar Signature Change
 
@@ -64,12 +64,12 @@ CSQ.addDynamicVar(key, value, onError?);
 
 ```typescript
 // Before
-Contentsquare.sendDynamicVar("user_segment", "premium");
+Contentsquare.sendDynamicVar('user_segment', 'premium');
 
 // After
-CSQ.addDynamicVar("user_segment", "premium");
-CSQ.addDynamicVar("ab_test_variant", 2, error => {
-  console.error("Error:", error);
+CSQ.addDynamicVar('user_segment', 'premium');
+CSQ.addDynamicVar('ab_test_variant', 2, (error) => {
+  console.error('Error:', error);
 });
 ```
 
@@ -120,7 +120,6 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 ```
 
 **Prop changes:**
-
 - `isMasking` → `isSessionReplayMasked`
 - Additional props available: `allowText`, `allowInteraction`, etc.
 
@@ -135,18 +134,16 @@ If you were using a legacy `configureProductAnalytics` method, migrate to `Start
 ```typescript
 // Before (legacy - may not exist in all versions)
 Contentsquare.configureProductAnalytics({
-  environmentId: "your-env-id",
-  options: { enableRNAutocapture: true },
+  environmentId: 'your-env-id',
+  options: { enableRNAutocapture: true }
 });
 
 // After
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
-CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
-    enableRNAutocapture: true,
-  }),
-);
+CSQ.start(StartConfig.withEnvironmentId('your-env-id', {
+  enableRNAutocapture: true
+}));
 ```
 
 ---
@@ -203,9 +200,9 @@ If using legacy configuration:
 
 ```typescript
 // Replace any legacy start configuration with:
-CSQ.start(StartConfig.withEnvironmentId("your-env-id", options));
+CSQ.start(StartConfig.withEnvironmentId('your-env-id', options));
 // or
-CSQ.start(StartConfig.withDataSourceId("your-datasource-id", options));
+CSQ.start(StartConfig.withDataSourceId('your-datasource-id', options));
 // or
 CSQ.start(StartConfig.dxa());
 ```
@@ -234,8 +231,8 @@ import type {
   AnalyticsOptions,
   Transaction,
   CustomVar,
-  PropertyValue,
-} from "@contentsquare/react-native-bridge";
+  PropertyValue
+} from '@contentsquare/react-native-bridge';
 ```
 
 ### Issue: addDynamicVar not working
@@ -246,10 +243,10 @@ import type {
 
 ```typescript
 // Correct
-CSQ.addDynamicVar("key", "value");
+CSQ.addDynamicVar('key', 'value');
 
 // Incorrect (legacy)
-CSQ.addDynamicVar({ key: "key", value: "value" });
+CSQ.addDynamicVar({ key: 'key', value: 'value' });
 ```
 
 ### Issue: CSQWebView not found
@@ -267,7 +264,6 @@ CSQ.addDynamicVar({ key: "key", value: "value" });
 ```
 
 Then run:
-
 ```bash
 npm install
 cd ios && pod install && cd ..
@@ -299,10 +295,10 @@ Use `CSQ` in all new code while keeping existing `Contentsquare` calls:
 
 ```typescript
 // Existing code - leave as is for now
-Contentsquare.trackScreenview("Home");
+Contentsquare.trackScreenview('Home');
 
 // New code - use CSQ
-CSQ.trackEvent("button_clicked");
+CSQ.trackEvent('button_clicked');
 ```
 
 ### Phase 2: File-by-File

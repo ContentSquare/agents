@@ -1,11 +1,49 @@
 ---
 name: contentsquare-react-native-sdk
-description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
+description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
 ---
 
 # Contentsquare React Native SDK Integration
 
 > This skill helps AI agents integrate or upgrade the Contentsquare React Native SDK in client applications.
+
+## MANDATORY FIRST STEP -- Contentsquare project healthcheck
+
+Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
+
+1. **Announce it first.** Tell the user what you are about to do, for example:
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle ids, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+
+2. **Resolve the bundle ids -- a React Native app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
+
+   | Platform | Where to read it |
+   |---|---|
+   | Android | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`) |
+   | iOS | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/<App>.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `Info.plist`), resolving any `$(...)` variables |
+
+3. **Call the endpoint once per platform that exists.** The platform segment must be literally `ios` or `android`. There is no React Native platform value -- never send one.
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<androidApplicationId>.json"
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<iosBundleId>.json"
+   ```
+
+   If only one platform is present in the project, query only that one. If you cannot resolve one of the ids, ask the user which platform to check rather than guessing.
+
+4. **Report a short summary** of these values, per platform queried:
+
+   | Report | JSON path |
+   |---|---|
+   | Project ID | `cs_project_id` |
+   | Tracking enabled | `project_configurations.project_config.enabled` |
+   | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
+   | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
+
+   Android and iOS may map to different Contentsquare projects. If the two responses differ, call that out explicitly.
+
+5. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
 
 ## Install
 
@@ -42,7 +80,7 @@ function App() {
       enableRNAutocapture: true,
       sessionReplayAutoStart: true  // Optional: auto-start session replay
     }));
-
+    
     // TODO: customer to manage consent — call only after user accepts
     CSQ.optIn();
   }, []);
@@ -63,50 +101,50 @@ Always use `CSQ` from `@contentsquare/react-native-bridge`. The `Contentsquare` 
 
 ### Lifecycle
 
-| Method             | Purpose                                                                           |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `start(config?)`   | Start the SDK. Must be called before any other API.                               |
-| `stop()`           | Shut down the SDK completely.                                                     |
-| `pauseTracking()`  | Pause data collection (for sensitive screens). Avoid unless explicitly requested. |
-| `resumeTracking()` | Resume after `pauseTracking()`.                                                   |
+| Method | Purpose |
+|--------|---------|
+| `start(config?)` | Start the SDK. Must be called before any other API. |
+| `stop()` | Shut down the SDK completely. |
+| `pauseTracking()` | Pause data collection (for sensitive screens). Avoid unless explicitly requested. |
+| `resumeTracking()` | Resume after `pauseTracking()`. |
 
 ### StartConfig Variants
 
-| Factory                                       | Use Case                                    | Onboarding priority                                                               |
-| --------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------- |
-| `StartConfig.withDataSourceId(id, options?)`  | CSQ with data source ID                     | **1st choice for new clients** -- ask for this first                              |
-| `StartConfig.withEnvironmentId(id, options?)` | Product Analytics with environment ID       | 2nd choice if no data source ID is available                                      |
-| `StartConfig.dxa()`                           | Digital Experience Analytics only (default) | Fallback only -- when neither ID is available or DXA-only is explicitly requested |
+| Factory | Use Case | Onboarding priority |
+|---------|----------|---------------------|
+| `StartConfig.withDataSourceId(id, options?)` | CSQ with data source ID | **1st choice for new clients** -- ask for this first |
+| `StartConfig.withEnvironmentId(id, options?)` | Product Analytics with environment ID | 2nd choice if no data source ID is available |
+| `StartConfig.dxa()` | Digital Experience Analytics only (default) | Fallback only -- when neither ID is available or DXA-only is explicitly requested |
 
 `withDataSourceId` and `withEnvironmentId` accept the same `AnalyticsOptions` object (see the **AnalyticsOptions** section below). `StartConfig.dxa()` takes no arguments -- it has no `AnalyticsOptions` parameter.
 
 **Recommended onboarding flow:**
 
-1. Ask the user: _"Do you have a Contentsquare data source ID?"_ If yes, use `StartConfig.withDataSourceId(id, ...)`.
-2. If not, ask: _"Do you have an environment ID?"_ If yes, use `StartConfig.withEnvironmentId(id, ...)`.
+1. Ask the user: *"Do you have a Contentsquare data source ID?"* If yes, use `StartConfig.withDataSourceId(id, ...)`.
+2. If not, ask: *"Do you have an environment ID?"* If yes, use `StartConfig.withEnvironmentId(id, ...)`.
 3. Only if neither is available (or the user explicitly wants DXA-only), fall back to `StartConfig.dxa()`.
 
 Do not invent an ID. Do not silently default to DXA without asking.
 
 ### Privacy
 
-| Method     | Purpose                                                      |
-| ---------- | ------------------------------------------------------------ |
-| `optIn()`  | Opt the device into tracking. Starts immediately.            |
+| Method | Purpose |
+|--------|---------|
+| `optIn()` | Opt the device into tracking. Starts immediately. |
 | `optOut()` | Opt out permanently. Stops until `optIn()` or app reinstall. |
 
 ### Identity
 
-| Method                               | Context           | Purpose                                               |
-| ------------------------------------ | ----------------- | ----------------------------------------------------- |
-| `identify(userIdentifier)`           | Product Analytics | Set user identity. Different ID triggers new session. |
-| `resetIdentity()`                    | Product Analytics | Clear identity. Triggers new session.                 |
-| `sendUserIdentifier(userIdentifier)` | DXA               | Send hashed user ID. Max 100 chars.                   |
+| Method | Context | Purpose |
+|--------|---------|---------|
+| `identify(userIdentifier)` | Product Analytics | Set user identity. Different ID triggers new session. |
+| `resetIdentity()` | Product Analytics | Clear identity. Triggers new session. |
+| `sendUserIdentifier(userIdentifier)` | DXA | Send hashed user ID. Max 100 chars. |
 
 ### Screen Tracking
 
-| Method                                     | Purpose                                             |
-| ------------------------------------------ | --------------------------------------------------- |
+| Method | Purpose |
+|--------|---------|
 | `trackScreenview(screenName, customVars?)` | Track a screen view with optional custom variables. |
 
 `CustomVar` structure: `{ index: number, key: string, value: string }` -- index (1-20), key (max 50 chars), value (max 255 chars).
@@ -116,12 +154,12 @@ See [Screen Tracking Integration](#screen-tracking-integration) for React Naviga
 ### Transactions
 
 ```typescript
-import { CSQ, Currency } from "@contentsquare/react-native-bridge";
+import { CSQ, Currency } from '@contentsquare/react-native-bridge';
 
 CSQ.trackTransaction({
   price: 29.99,
   currency: Currency.USD,
-  id: "order_123",
+  id: 'order_123'
 });
 ```
 
@@ -129,29 +167,28 @@ CSQ.trackTransaction({
 
 ### Custom Events and Properties
 
-| Method                                | Purpose                                        |
-| ------------------------------------- | ---------------------------------------------- |
-| `trackEvent(eventName, properties?)`  | Track a named event with optional properties.  |
+| Method | Purpose |
+|--------|---------|
+| `trackEvent(eventName, properties?)` | Track a named event with optional properties. |
 | `addDynamicVar(key, value, onError?)` | Add session-level dynamic variable (DXA only). |
-| `addUserProperties(properties)`       | Set user-level properties (PA only).           |
-| `addEventProperties(properties)`      | Set properties on all future events (PA only). |
-| `removeEventProperty(name)`           | Remove one event property.                     |
-| `clearEventProperties()`              | Remove all event properties.                   |
+| `addUserProperties(properties)` | Set user-level properties (PA only). |
+| `addEventProperties(properties)` | Set properties on all future events (PA only). |
+| `removeEventProperty(name)` | Remove one event property. |
+| `clearEventProperties()` | Remove all event properties. |
 
 Property values must be `string`, `number`, `boolean`, or `bigint`. Other types are silently ignored.
 
 Dynamic variables (DXA only):
-
 - `key`: string (max 50 chars)
 - `value`: string (max 255 chars) or unsigned integer (0 to 2^32-1)
 - `onError`: optional callback for validation errors
 
 ### Session Replay
 
-| Method                 | Purpose                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Method | Purpose |
+|--------|---------|
 | `startSessionReplay()` | Start Session Replay on-demand. Use when `sessionReplayAutoStart: false` was passed to `start()`. **One-shot** -- not a restart API. |
-| `stopSessionReplay()`  | Stop Session Replay on-demand without stopping the SDK. **Terminal** -- SR cannot be re-started afterwards in the same SDK lifetime. |
+| `stopSessionReplay()` | Stop Session Replay on-demand without stopping the SDK. **Terminal** -- SR cannot be re-started afterwards in the same SDK lifetime. |
 
 **On-demand Session Replay** -- disable auto-start at SDK launch and control it manually:
 
@@ -173,13 +210,13 @@ CSQ.stopSessionReplay();
 Access session information including the replay URL. `onMetadataChange` returns an **unsubscribe function** -- call it to remove the listener (e.g., on component unmount):
 
 ```typescript
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 useEffect(() => {
-  const unsubscribe = CSQ.onMetadataChange(metadata => {
-    console.log("Session Replay URL:", metadata.sessionReplayUrl);
-    console.log("Session ID:", metadata.sessionID);
-    console.log("User ID:", metadata.userID);
+  const unsubscribe = CSQ.onMetadataChange((metadata) => {
+    console.log('Session Replay URL:', metadata.sessionReplayUrl);
+    console.log('Session ID:', metadata.sessionID);
+    console.log('User ID:', metadata.userID);
   });
 
   return unsubscribe; // Cleanup on unmount
@@ -190,11 +227,11 @@ useEffect(() => {
 
 ### Debug
 
-| API                         | Purpose                                 |
-| --------------------------- | --------------------------------------- |
-| `setLogLevel(LogLevel)`     | Set log level (`info`, `verbose`, etc.) |
-| `setLogChannel(LogChannel)` | Set log output channel                  |
-| `logToConsole()`            | Enable console logging                  |
+| API | Purpose |
+|-----|---------|
+| `setLogLevel(LogLevel)` | Set log level (`info`, `verbose`, etc.) |
+| `setLogChannel(LogChannel)` | Set log output channel |
+| `logToConsole()` | Enable console logging |
 
 ### AnalyticsOptions (shared by `withDataSourceId` and `withEnvironmentId`)
 
@@ -202,27 +239,27 @@ useEffect(() => {
 
 All fields are nullable (`undefined` = native default behavior).
 
-| Field                                         | Type       | Purpose                                              |
-| --------------------------------------------- | ---------- | ---------------------------------------------------- |
-| `enableRNAutocapture`                         | `boolean?` | Enable React Native interaction autocapture (PA)     |
-| `sessionReplayAutoStart`                      | `boolean?` | If `true`, SR starts at SDK launch. Default: `false` |
-| `uploadInterval`                              | `number?`  | Upload interval in milliseconds (default: 15000)     |
-| `baseUrl`                                     | `string?`  | Custom API endpoint (e.g., for EU data residency)    |
-| `disablePageviewAutocapture`                  | `boolean?` | Disable automatic screen tracking                    |
-| `disableInteractionAutocapture`               | `boolean?` | Disable automatic touch tracking (iOS only)          |
-| `disableInteractionTextCapture`               | `boolean?` | Disable text capture in interactions (iOS only)      |
-| `disableInteractionAccessibilityLabelCapture` | `boolean?` | Disable accessibility label capture (iOS only)       |
-| `disablePageviewTitleAutocapture`             | `boolean?` | Disable page title capture (iOS only)                |
-| `enablePushNotificationAutocapture`           | `boolean?` | Capture push notification events                     |
-| `enablePushNotificationTitleAutocapture`      | `boolean?` | Capture push notification title                      |
-| `enablePushNotificationBodyAutocapture`       | `boolean?` | Capture push notification body                       |
+| Field | Type | Purpose |
+|-------|------|---------|
+| `enableRNAutocapture` | `boolean?` | Enable React Native interaction autocapture (PA) |
+| `sessionReplayAutoStart` | `boolean?` | If `true`, SR starts at SDK launch. Default: `false` |
+| `uploadInterval` | `number?` | Upload interval in milliseconds (default: 15000) |
+| `baseUrl` | `string?` | Custom API endpoint (e.g., for EU data residency) |
+| `disablePageviewAutocapture` | `boolean?` | Disable automatic screen tracking |
+| `disableInteractionAutocapture` | `boolean?` | Disable automatic touch tracking (iOS only) |
+| `disableInteractionTextCapture` | `boolean?` | Disable text capture in interactions (iOS only) |
+| `disableInteractionAccessibilityLabelCapture` | `boolean?` | Disable accessibility label capture (iOS only) |
+| `disablePageviewTitleAutocapture` | `boolean?` | Disable page title capture (iOS only) |
+| `enablePushNotificationAutocapture` | `boolean?` | Capture push notification events |
+| `enablePushNotificationTitleAutocapture` | `boolean?` | Capture push notification title |
+| `enablePushNotificationBodyAutocapture` | `boolean?` | Capture push notification body |
 
 ## Session Replay Masking
 
 ### Global masking (setDefaultMasking)
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Mask everything by default
 CSQ.setDefaultMasking(true);
@@ -232,7 +269,6 @@ CSQ.setDefaultMasking(false);
 ```
 
 **Important**:
-
 - `setDefaultMasking` takes a **boolean**, not a configuration object. It's all-or-nothing global masking.
 - `setDefaultMasking` must be called **after** `CSQ.start(...)`. Calling it before `start()` has no effect.
 
@@ -248,10 +284,10 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 
 **Note**: `isSessionReplayMasked` controls Session Replay visual masking. Use `allow*` props to also control Product Analytics event data.
 
-### Fine-grained control with allow\* props (Product Analytics)
+### Fine-grained control with allow* props (Product Analytics)
 
 ```typescript
-<CSQMask
+<CSQMask 
   isSessionReplayMasked={true}  // Masks visual content in Session Replay
   allowText={false}             // Prevents text in PA events
   allowInteraction={false}      // Prevents interaction tracking in PA events
@@ -264,26 +300,26 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 
 ### CSQMask props
 
-| Prop                      | Type       | Default | Purpose                                   | Feature               |
-| ------------------------- | ---------- | ------- | ----------------------------------------- | --------------------- |
-| `isSessionReplayMasked`   | `boolean?` | `true`  | Whether to mask visual content            | **Session Replay**    |
-| `ignoreTextOnly`          | `boolean?` | `false` | Ignore text only (conflicts with allow\*) | **Product Analytics** |
-| `allowInnerHierarchy`     | `boolean?` | `false` | Allow inner view hierarchy in events      | **Product Analytics** |
-| `allowProps`              | `boolean?` | `false` | Allow view properties in events           | **Product Analytics** |
-| `allowText`               | `boolean?` | `false` | Allow text content in events              | **Product Analytics** |
-| `allowInteraction`        | `boolean?` | `false` | Allow interaction tracking in events      | **Product Analytics** |
-| `allowAccessibilityLabel` | `boolean?` | `false` | Allow accessibility labels in events      | **Product Analytics** |
+| Prop | Type | Default | Purpose | Feature |
+|------|------|---------|---------|----------|
+| `isSessionReplayMasked` | `boolean?` | `true` | Whether to mask visual content | **Session Replay** |
+| `ignoreTextOnly` | `boolean?` | `false` | Ignore text only (conflicts with allow*) | **Product Analytics** |
+| `allowInnerHierarchy` | `boolean?` | `false` | Allow inner view hierarchy in events | **Product Analytics** |
+| `allowProps` | `boolean?` | `false` | Allow view properties in events | **Product Analytics** |
+| `allowText` | `boolean?` | `false` | Allow text content in events | **Product Analytics** |
+| `allowInteraction` | `boolean?` | `false` | Allow interaction tracking in events | **Product Analytics** |
+| `allowAccessibilityLabel` | `boolean?` | `false` | Allow accessibility labels in events | **Product Analytics** |
 
 > **Important**: Only `isSessionReplayMasked` affects Session Replay visual masking. The `allow*` props control Product Analytics event data capture. When `ignoreTextOnly` is `true`, all `allow*` props are ignored.
 
 ### Higher-Order Component masking
 
 ```typescript
-import { withCSQMask } from "@contentsquare/react-native-bridge";
+import { withCSQMask } from '@contentsquare/react-native-bridge';
 
 const MaskedComponent = withCSQMask(SensitiveComponent, {
-  isSessionReplayMasked: true, // SR visual masking
-  allowText: false, // Optional: PA event data masking
+  isSessionReplayMasked: true,  // SR visual masking
+  allowText: false              // Optional: PA event data masking
 });
 ```
 
@@ -393,8 +429,8 @@ Autocapture enables automatic tracking of user interactions and screen navigatio
 
 ```javascript
 module.exports = {
-  presets: ["module:@react-native/babel-preset"],
-  plugins: ["@contentsquare/react-native-bridge/babel"],
+  presets: ['module:@react-native/babel-preset'],
+  plugins: ['@contentsquare/react-native-bridge/babel'],
 };
 ```
 
@@ -405,26 +441,22 @@ The Babel plugin requires `@babel/plugin-transform-react-display-name` to includ
 ### Enable Autocapture
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
-CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
-    enableRNAutocapture: true, // Enable autocapture
-  }),
-);
+CSQ.start(StartConfig.withEnvironmentId('your-env-id', {
+  enableRNAutocapture: true  // Enable autocapture
+}));
 ```
 
 ### Navigation Library Compatibility
 
 The React Native Bridge's autocapture feature is compatible with the following navigation libraries:
-
 - **React Navigation**: 5.0 and later
 - **React Native Navigation**: 7.0 and later
 
 ### What Gets Autocaptured
 
 Autocapture automatically tracks:
-
 - Touch events (tap, long press, swipe)
 - Change events (text input, switches, pickers, sliders)
 - Component interactions with display names
@@ -435,12 +467,10 @@ Autocapture automatically tracks:
 When using both Experience Analytics and Product Analytics, pass PA options via `StartConfig.withDataSourceId`:
 
 ```typescript
-CSQ.start(
-  StartConfig.withDataSourceId("YOUR_DATA_SOURCE_ID", {
-    enableRNAutocapture: true,
-    disablePageviewAutocapture: true, // Let Experience Analytics handle screens
-  }),
-);
+CSQ.start(StartConfig.withDataSourceId('YOUR_DATA_SOURCE_ID', {
+  enableRNAutocapture: true,
+  disablePageviewAutocapture: true, // Let Experience Analytics handle screens
+}));
 ```
 
 ## Source Maps and Crash Symbolication
@@ -450,7 +480,6 @@ For readable JavaScript crash stack traces in production, configure source map u
 ### Quick Setup
 
 1. **Install the Contentsquare CLI**:
-
    ```bash
    yarn add @contentsquare/react-native-cli --dev
    ```

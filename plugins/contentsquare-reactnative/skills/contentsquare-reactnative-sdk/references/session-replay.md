@@ -19,7 +19,7 @@ React Native SDK provides three masking levels:
 Use `setDefaultMasking()` for app-wide masking policy:
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Mask everything by default (safest)
 CSQ.setDefaultMasking(true);
@@ -29,7 +29,6 @@ CSQ.setDefaultMasking(false);
 ```
 
 **Important**:
-
 - `setDefaultMasking` is **boolean only**. It's all-or-nothing. For selective masking, use `CSQMask` component.
 - `setDefaultMasking` must be called **after** `CSQ.start(...)`. Calling it before `start()` has no effect.
 
@@ -455,19 +454,19 @@ function AdminPanel({ userRole }: Props) {
 Start/stop session replay based on user actions:
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
 // Start SDK without auto-starting session replay
 CSQ.start(
-  StartConfig.withEnvironmentId("your-env-id", {
+  StartConfig.withEnvironmentId('your-env-id', {
     sessionReplayAutoStart: false,
-  }),
+  })
 );
 
 // Start session replay when user enters checkout
 function enterCheckout() {
   CSQ.startSessionReplay();
-  navigation.navigate("Checkout");
+  navigation.navigate('Checkout');
 }
 
 // Stop when checkout complete (terminal - cannot restart)
@@ -488,8 +487,8 @@ function checkoutComplete() {
 ### Check What's Masked
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
-import { useEffect } from "react";
+import { CSQ } from '@contentsquare/react-native-bridge';
+import { useEffect } from 'react';
 
 // Enable verbose logging
 if (__DEV__) {
@@ -500,7 +499,7 @@ if (__DEV__) {
 useEffect(() => {
   // Get session replay URL
   const unsubscribe = CSQ.onMetadataChange(metadata => {
-    console.log("Session Replay URL:", metadata.sessionReplayUrl);
+    console.log('Session Replay URL:', metadata.sessionReplayUrl);
     // Open URL and verify masking
   });
 
@@ -589,7 +588,7 @@ function UserProfile() {
 - Provide opt-out mechanism
 
 ```typescript
-import { CSQ } from "@contentsquare/react-native-bridge";
+import { CSQ } from '@contentsquare/react-native-bridge';
 
 // Only opt-in after consent
 function handleConsent(accepted: boolean) {

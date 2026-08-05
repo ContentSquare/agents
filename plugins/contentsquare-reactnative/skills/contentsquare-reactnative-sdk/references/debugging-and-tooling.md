@@ -24,8 +24,8 @@ Add the Autocapture plugin to your Babel configuration:
 
 ```javascript
 module.exports = {
-  presets: ["module:@react-native/babel-preset"],
-  plugins: ["@contentsquare/react-native-bridge/babel"],
+  presets: ['module:@react-native/babel-preset'],
+  plugins: ['@contentsquare/react-native-bridge/babel'],
 };
 ```
 
@@ -41,10 +41,10 @@ If you're not using any of these presets, add `@babel/plugin-transform-react-dis
 
 ```javascript
 module.exports = {
-  presets: ["@babel/preset-react"],
+  presets: ['@babel/preset-react'],
   plugins: [
-    "@babel/plugin-transform-react-display-name",
-    "@contentsquare/react-native-bridge/babel",
+    '@babel/plugin-transform-react-display-name',
+    '@contentsquare/react-native-bridge/babel',
   ],
 };
 ```
@@ -54,13 +54,13 @@ module.exports = {
 Enable autocapture when configuring Product Analytics:
 
 ```typescript
-import { CSQ, StartConfig } from "@contentsquare/react-native-bridge";
+import { CSQ, StartConfig } from '@contentsquare/react-native-bridge';
 
 useEffect(() => {
   CSQ.start(
-    StartConfig.withEnvironmentId("YOUR_ENVIRONMENT_ID", {
+    StartConfig.withEnvironmentId('YOUR_ENVIRONMENT_ID', {
       enableRNAutocapture: true,
-    }),
+    })
   );
 }, []);
 ```
@@ -154,8 +154,8 @@ And use Expo-compatible Babel config in **babel.config.js**:
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo"],
-    plugins: ["@contentsquare/react-native-bridge/babel"],
+    presets: ['babel-preset-expo'],
+    plugins: ['@contentsquare/react-native-bridge/babel'],
   };
 };
 ```
@@ -179,7 +179,7 @@ After enabling autocapture, verify it's working:
 3. **Enable verbose logging**:
 
    ```typescript
-   import { CSQ, LogLevel } from "@contentsquare/react-native-bridge";
+   import { CSQ, LogLevel } from '@contentsquare/react-native-bridge';
 
    CSQ.setLogLevel(LogLevel.verbose);
    CSQ.logToConsole();
@@ -190,12 +190,10 @@ After enabling autocapture, verify it's working:
 When using both Experience Analytics and Product Analytics, pass PA options via `StartConfig.withDataSourceId`:
 
 ```typescript
-CSQ.start(
-  StartConfig.withDataSourceId("YOUR_DATA_SOURCE_ID", {
-    enableRNAutocapture: true,
-    disablePageviewAutocapture: true, // Screen tracking handled by Experience Analytics
-  }),
-);
+CSQ.start(StartConfig.withDataSourceId('YOUR_DATA_SOURCE_ID', {
+  enableRNAutocapture: true,
+  disablePageviewAutocapture: true, // Screen tracking handled by Experience Analytics
+}));
 ```
 
 ## Source Maps and Crash Symbolication
@@ -471,11 +469,9 @@ Look for Autocapture initialization messages:
 Ensure `enableRNAutocapture: true` is set:
 
 ```typescript
-CSQ.start(
-  StartConfig.withEnvironmentId("ENV_ID", {
-    enableRNAutocapture: true,
-  }),
-);
+CSQ.start(StartConfig.withEnvironmentId('ENV_ID', {
+  enableRNAutocapture: true,
+}));
 ```
 
 ### Source Map Upload Failures
@@ -585,12 +581,10 @@ cd android && ./gradlew clean assembleRelease
 If your Product Analytics environment is hosted in the EU, configure the base URL:
 
 ```typescript
-CSQ.start(
-  StartConfig.withEnvironmentId("YOUR_ENVIRONMENT_ID", {
-    enableRNAutocapture: true,
-    baseUrl: "https://mh.ba.contentsquare.net",
-  }),
-);
+CSQ.start(StartConfig.withEnvironmentId('YOUR_ENVIRONMENT_ID', {
+  enableRNAutocapture: true,
+  baseUrl: 'https://mh.ba.contentsquare.net',
+}));
 ```
 
 And in **contentsquare-cli.json**:
