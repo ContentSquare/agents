@@ -1,5 +1,3 @@
 node_modules/
 
-# CI scratch checkout of the upstream SDK repo (see .github/workflows/sync-skill.yml).
-# Never commit it — git add -A would otherwise stage it as a stray gitlink.
 _source/
