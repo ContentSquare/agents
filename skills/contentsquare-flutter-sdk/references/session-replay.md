@@ -41,15 +41,15 @@ When no `maskingConfig` is provided, the SDK applies sensible defaults. See [def
 
 ### What each field masks
 
-| Field              | What gets masked     | Example widgets                                 |
-| ------------------ | -------------------- | ----------------------------------------------- |
-| `maskTexts`        | All text content     | `Text`, `RichText`                              |
-| `maskTextFields`   | Input field content  | `TextField`, `TextFormField`                    |
-| `maskImages`       | Image content        | `Image`, `Image.network`, `Image.asset`         |
-| `maskSvgImages`    | SVG pictures         | `flutter_svg` widgets                           |
-| `maskCharts`       | Chart content        | `fl_chart` widgets                              |
+| Field | What gets masked | Example widgets |
+|-------|-----------------|-----------------|
+| `maskTexts` | All text content | `Text`, `RichText` |
+| `maskTextFields` | Input field content | `TextField`, `TextFormField` |
+| `maskImages` | Image content | `Image`, `Image.network`, `Image.asset` |
+| `maskSvgImages` | SVG pictures | `flutter_svg` widgets |
+| `maskCharts` | Chart content | `fl_chart` widgets |
 | `maskCustomPaints` | Custom-drawn content | Your `CustomPaint` widgets (not framework ones) |
-| `maskInteractions` | User interactions    | Taps, swipes (Product Analytics only)           |
+| `maskInteractions` | User interactions | Taps, swipes (Product Analytics only) |
 
 ### Masking precedence
 
@@ -101,10 +101,10 @@ await CSQ().startSessionReplay();
 await CSQ().stopSessionReplay();
 ```
 
-| Method                 | Effect                                                                                                                                                                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `startSessionReplay()` | Starts SR. Behaves like the automatic start once invoked. **One-shot:** intended to be called at most once when `sessionReplayAutoStart: false`.                                                                                      |
-| `stopSessionReplay()`  | Stops SR only. Other tracking (events, pageviews, identify, etc.) keeps running. **Terminal:** once called, SR cannot be re-started -- subsequent `startSessionReplay()` calls have no effect. Use `CSQ().stop()` to stop everything. |
+| Method | Effect |
+|--------|--------|
+| `startSessionReplay()` | Starts SR. Behaves like the automatic start once invoked. **One-shot:** intended to be called at most once when `sessionReplayAutoStart: false`. |
+| `stopSessionReplay()` | Stops SR only. Other tracking (events, pageviews, identify, etc.) keeps running. **Terminal:** once called, SR cannot be re-started -- subsequent `startSessionReplay()` calls have no effect. Use `CSQ().stop()` to stop everything. |
 
 > **No restart support.** This API only handles **starting** and **stopping** SR -- it is not a pause/resume mechanism. Plan the customer's flow accordingly: start SR at the beginning of the journey you want to record, and only call `stopSessionReplay()` when you are sure the recording is complete for the rest of the session.
 
