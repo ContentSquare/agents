@@ -49,9 +49,9 @@ CSQ.start(
 
 **Parameters:**
 
-| Parameter     | Type                     | Description                                                                                                                                       |
-| ------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `context`     | `Context`                | Android `Context` (typically the `Application` instance).                                                                                         |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `context` | `Context` | Android `Context` (typically the `Application` instance). |
 | `startConfig` | `StartConfig` (optional) | Configuration created via `StartConfig.withEnvironmentId(id, options)` or `StartConfig.withDataSourceId(id)`. Omit for Experience Analytics only. |
 
 `environmentId` and `dataSourceId` are obtained from the Contentsquare project settings on `app.contentsquare.com`. Never hardcode them.
@@ -88,16 +88,16 @@ Resume tracking after `pauseTracking()`.
 
 ## `AnalyticsOptions` (passed to `StartConfig.withEnvironmentId` / `withDataSourceId` / `dxa`)
 
-| Option                                   | Type               | Default                                  | Description                                                                                                                    |
-| ---------------------------------------- | ------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `enableViewAutocapture`                  | `Boolean`          | `false`                                  | Auto-capture UI interactions and pageviews. **Android Views only — no Compose support.**                                       |
-| `disablePageviewAutocapture`             | `Boolean`          | `false`                                  | Disable autocaptured source pageviews.                                                                                         |
-| `enablePushNotificationAutocapture`      | `Boolean`          | `false`                                  | Auto-capture interaction events on notifications.                                                                              |
-| `enablePushNotificationTitleAutocapture` | `Boolean`          | `false`                                  | Capture notification title (requires `enablePushNotificationAutocapture = true`).                                              |
-| `enablePushNotificationBodyAutocapture`  | `Boolean`          | `false`                                  | Capture notification body (requires `enablePushNotificationAutocapture = true`).                                               |
-| `baseUri`                                | `URI`              | `URI("https://mh.bf.contentsquare.net")` | Base URI for the API endpoint.                                                                                                 |
-| `uploadInterval`                         | `Double` (seconds) | `15.0`                                   | Interval at which event batches are uploaded.                                                                                  |
-| `sessionReplayAutoStart`                 | `Boolean`          | `true`                                   | Set to `false` to disable automatic Session Replay start; control with `CSQ.startSessionReplay()` / `CSQ.stopSessionReplay()`. |
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enableViewAutocapture` | `Boolean` | `false` | Auto-capture UI interactions and pageviews. **Android Views only — no Compose support.** |
+| `disablePageviewAutocapture` | `Boolean` | `false` | Disable autocaptured source pageviews. |
+| `enablePushNotificationAutocapture` | `Boolean` | `false` | Auto-capture interaction events on notifications. |
+| `enablePushNotificationTitleAutocapture` | `Boolean` | `false` | Capture notification title (requires `enablePushNotificationAutocapture = true`). |
+| `enablePushNotificationBodyAutocapture` | `Boolean` | `false` | Capture notification body (requires `enablePushNotificationAutocapture = true`). |
+| `baseUri` | `URI` | `URI("https://mh.bf.contentsquare.net")` | Base URI for the API endpoint. |
+| `uploadInterval` | `Double` (seconds) | `15.0` | Interval at which event batches are uploaded. |
+| `sessionReplayAutoStart` | `Boolean` | `true` | Set to `false` to disable automatic Session Replay start; control with `CSQ.startSessionReplay()` / `CSQ.stopSessionReplay()`. |
 
 ---
 
@@ -131,8 +131,8 @@ CSQ.identify(identity: String)
 
 Product Analytics. Assigns an identity to the current user. Changing identity forces a new user ID and a new session.
 
-| Parameter  | Type     | Constraints | Description                          |
-| ---------- | -------- | ----------- | ------------------------------------ |
+| Parameter | Type | Constraints | Description |
+|-----------|------|-------------|-------------|
 | `identity` | `String` | ≤ 255 chars | Identity to associate with the user. |
 
 ### resetIdentity
@@ -151,8 +151,8 @@ CSQ.sendUserIdentifier(identifier: String)
 
 Experience Analytics. Associate a hashed user identifier (email, phone number, customer ID…) to the session. The SDK hashes the value before sending.
 
-| Parameter    | Type     | Constraints | Description                            |
-| ------------ | -------- | ----------- | -------------------------------------- |
+| Parameter | Type | Constraints | Description |
+|-----------|------|-------------|-------------|
 | `identifier` | `String` | ≤ 100 chars | Trimmed and lowercased before hashing. |
 
 Recommended: call on every foreground entry via `ProcessLifecycleOwner` (a session ends 30 minutes after the last event).
@@ -233,17 +233,17 @@ class TimberLogChannel : LogChannel {
 CSQ.trackScreenview(name: String, customVars: List<CustomVar> = emptyList())
 ```
 
-| Parameter    | Type              | Description                                                        |
-| ------------ | ----------------- | ------------------------------------------------------------------ |
-| `name`       | `String`          | Screen name. Keep distinct names ≤ 100 per app. Never include PII. |
-| `customVars` | `List<CustomVar>` | Optional custom variables.                                         |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `String` | Screen name. Keep distinct names ≤ 100 per app. Never include PII. |
+| `customVars` | `List<CustomVar>` | Optional custom variables. |
 
 **`CustomVar`:**
 
-| Field   | Type     | Constraints |
-| ------- | -------- | ----------- |
-| `index` | `Int`    | 0..20       |
-| `name`  | `String` | ≤ 512 chars |
+| Field | Type | Constraints |
+|-------|------|-------------|
+| `index` | `Int` | 0..20 |
+| `name` | `String` | ≤ 512 chars |
 | `value` | `String` | ≤ 255 chars |
 
 > Sessions without at least one screenview are discarded server-side.
@@ -277,11 +277,11 @@ CSQ.trackTransaction(transaction)
 
 **`Transaction`:**
 
-| Parameter  | Type       | Required | Description                                                                                                                                                       |
-| ---------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`    | `Float`    | yes      | Transaction value. Note: very large numbers are subject to floating-point rounding (e.g. `1234567890f` → `1234567936f`). Regular currency amounts are unaffected. |
-| `currency` | `Currency` | yes      | ISO 4217 currency.                                                                                                                                                |
-| `id`       | `String?`  | no       | Transaction identifier. Default `null`.                                                                                                                           |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `value` | `Float` | yes | Transaction value. Note: very large numbers are subject to floating-point rounding (e.g. `1234567890f` → `1234567936f`). Regular currency amounts are unaffected. |
+| `currency` | `Currency` | yes | ISO 4217 currency. |
+| `id` | `String?` | no | Transaction identifier. Default `null`. |
 
 > **Send each transaction only once.** Do not call this from `onResume()` of a confirmation screen — it will fire every time the user re-foregrounds the app.
 
@@ -332,7 +332,6 @@ CSQ.addDynamicVar("loyalty_points", 1500L)
 ```
 
 Two overloads: `addDynamicVar(key: String, value: String)` and `addDynamicVar(key: String, value: Long)`. Session-scoped key/value pairs. Constraints:
-
 - `key` ≤ 512 chars (truncated otherwise); empty key replaced by `"cs-empty"`.
 - 40 distinct keys per screenview (additional ignored).
 - Same key reused on the same screenview overrides the previous value.

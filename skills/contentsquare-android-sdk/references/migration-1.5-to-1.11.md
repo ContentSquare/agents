@@ -18,7 +18,7 @@ implementation("com.contentsquare.android:sdk:1.11.0")
 implementation("com.contentsquare.android:sdk-compose:1.11.0")
 ```
 
-Always re-check Maven Central for the latest published version of **both** artifacts and pick the highest version present in both — see the _Install_ section of `SKILL.md`. If you cannot reach Maven Central, fall back to `1.11.0` (known good at the time this guide was written).
+Always re-check Maven Central for the latest published version of **both** artifacts and pick the highest version present in both — see the *Install* section of `SKILL.md`. If you cannot reach Maven Central, fall back to `1.11.0` (known good at the time this guide was written).
 
 ## 2. `CSQ.start()` signature change (breaking)
 
@@ -77,7 +77,7 @@ The context-taking overload still works at runtime in `1.11.x` but is deprecated
 
 ## 5. Behavior change — Session timeout (Experience Analytics)
 
-In `1.11.x` (EA `4.50.0`) the EA session timeout definition changed from _"30 minutes after the app went to background"_ to **"30 minutes after the last event"**. Sessions in active foreground use will now also roll over after 30 minutes of inactivity. Consider this when computing session-scoped metrics across the upgrade boundary.
+In `1.11.x` (EA `4.50.0`) the EA session timeout definition changed from *"30 minutes after the app went to background"* to **"30 minutes after the last event"**. Sessions in active foreground use will now also roll over after 30 minutes of inactivity. Consider this when computing session-scoped metrics across the upgrade boundary.
 
 ## 6. Migration checklist
 
@@ -86,7 +86,7 @@ In `1.11.x` (EA `4.50.0`) the EA session timeout definition changed from _"30 mi
 - [ ] `ProductAnalyticsOptions` renamed to `AnalyticsOptions`; removed options deleted from the call site.
 - [ ] `CSQ.optIn(this)` replaced by `CSQ.optIn()`.
 - [ ] Build compiles — any remaining unresolved symbol is a removed option (delete it) or an internal API (was never public, must not be used).
-- [ ] Logcat smoke test passes (see _Verifying the integration_ in `SKILL.md`).
+- [ ] Logcat smoke test passes (see *Verifying the integration* in `SKILL.md`).
 
 ## 7. (Optional) Switch to Unified CSQ
 
