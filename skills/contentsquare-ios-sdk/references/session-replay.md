@@ -60,14 +60,14 @@ Exceptions: views explicitly masked/unmasked with `mask(_:)` / `unmask(_:)` take
 
 ### What each method masks
 
-| Method                    | What gets masked                                                              |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| `maskTexts(true)`         | `UILabel`, SwiftUI `Text`                                                     |
-| `maskTextInputs(true)`    | `UITextField`, `UITextView`, SwiftUI `TextField`, `SecureField`, `TextEditor` |
-| `maskImages(true)`        | `UIImageView`, SwiftUI `Image`                                                |
-| `mask(_ view:)`           | The specific view and its subviews                                            |
-| `mask(viewsOfType:)`      | All instances of a UIView subclass                                            |
-| `setDefaultMasking(true)` | Everything (text inputs always masked)                                        |
+| Method | What gets masked |
+|--------|-----------------|
+| `maskTexts(true)` | `UILabel`, SwiftUI `Text` |
+| `maskTextInputs(true)` | `UITextField`, `UITextView`, SwiftUI `TextField`, `SecureField`, `TextEditor` |
+| `maskImages(true)` | `UIImageView`, SwiftUI `Image` |
+| `mask(_ view:)` | The specific view and its subviews |
+| `mask(viewsOfType:)` | All instances of a UIView subclass |
+| `setDefaultMasking(true)` | Everything (text inputs always masked) |
 
 ### Ignoring interactions
 
@@ -124,10 +124,10 @@ CSQ.startSessionReplay()
 CSQ.stopSessionReplay()
 ```
 
-| Method                 | Effect                                                                                                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `startSessionReplay()` | Starts SR on-demand. Behaves like automatic start once invoked. **One-shot** -- intended to be called at most once per SDK lifetime when `sessionReplayAutoStart: false`.    |
-| `stopSessionReplay()`  | Stops SR only. Other tracking (events, screenviews, identity, etc.) keeps running. **Terminal** -- once called, SR cannot be restarted. Use `CSQ.stop()` to stop everything. |
+| Method | Effect |
+|--------|--------|
+| `startSessionReplay()` | Starts SR on-demand. Behaves like automatic start once invoked. **One-shot** -- intended to be called at most once per SDK lifetime when `sessionReplayAutoStart: false`. |
+| `stopSessionReplay()` | Stops SR only. Other tracking (events, screenviews, identity, etc.) keeps running. **Terminal** -- once called, SR cannot be restarted. Use `CSQ.stop()` to stop everything. |
 
 > **No restart support.** This is not a pause/resume mechanism. Plan accordingly: start SR at the beginning of the journey you want to record, and only call `stopSessionReplay()` when you are certain the recording is complete for the rest of the session.
 

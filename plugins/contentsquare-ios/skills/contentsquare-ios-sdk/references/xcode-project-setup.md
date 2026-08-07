@@ -11,21 +11,16 @@ compatibility: Requires Swift to be installed locally and macOS environment.
 Before performing any Xcode setup or file manipulation, you **MUST** adhere to the following rules. A hefty fee will be applied if you violate them.
 
 ### 1. The Anti-Ruby Mandate
-
 You are **strictly forbidden** from using Ruby, Rails, or any Ruby gems (including the `xcodeproj` gem). Under no circumstances may you write or execute Ruby scripts.
 
 ### 2. Modern Xcode Folder Synchronization
-
 Modern Xcode projects support folder synchronization. When adding new source code (`.swift`) or resource files, simply write them to the correct directory on disk. They will be automatically included in the Xcode project. **Never manually modify the `.pbxproj` file to add files.**
 
 ### 3. Allowed Scripting Languages
-
 If you absolutely must write a script to manipulate the project environment (e.g., configuring SPM packages beyond what the provided `xcode_spm_setup` script does), you **must use Swift**. Only as an absolute last resort, if Swift is completely unviable, may you use Node.js or TypeScript.
 
 ### 4. Toolchain Verification
-
 Because this skill relies entirely on a native Swift script, you must verify the environment:
-
 - Run `swift --version` before proceeding.
 - If the Swift command is not found, you must stop and recommend the user install the Swift toolchain (e.g., via `xcode-select --install` on macOS), or ask if you can attempt to install it for them. Do not attempt to proceed without Swift.
 
@@ -46,15 +41,11 @@ Do not use raw text parsing, `sed`, or Ruby scripts to modify `.pbxproj` files d
 Instead, execute the Swift configuration package bundled with this skill (`scripts/xcode_spm_setup`) to securely install SPM packages.
 
 ### **CRITICAL: Always Use Latest SDK Version**
-
-To ensure access to the latest features and security fixes, always use the most recent version of the Contentsquare iOS SDK. Check for the latest release version at [https://github.com/ContentSquare/apple-sdk/releases](https://github.com/ContentSquare/apple-sdk/releases).
-
+To ensure access to the latest features and security fixes, always use the most recent version of the Contentsquare iOS SDK. Check for the latest release version at [https://github.com/ContentSquare/apple-sdk/releases](https://github.com/ContentSquare/apple-sdk/releases). 
 - Use the most recent version number (e.g., `1.x.y`) in your commands instead of hardcoded placeholders.
 
 ### Understanding the Script's Actions
-
 When adding a Swift Package to an Xcode project, two distinct steps must occur:
-
 1. Adding the package repository dependency (e.g., `https://github.com/Alamofire/Alamofire`).
 2. Selecting the target (e.g., `MyApp`), navigating to **General > Frameworks, Libraries, and Embedded Content**, and hitting the `+` button to explicitly link the specific product modules (e.g., `Alamofire`).
 
@@ -70,7 +61,6 @@ swift run --package-path <PATH_TO_SKILL>/scripts/xcode_spm_setup xcode_spm_setup
 ```
 
 ### Example 1: Generic Package (e.g., Alamofire)
-
 Adding Alamofire to a standard Xcode project.
 
 ```bash
@@ -78,9 +68,8 @@ swift run --package-path /Users/foo/.agents/skills/xcode-project-setup/scripts/x
 ```
 
 Example 2: Contentsquare
-
 ```bash
 swift run --package-path /Users/foo/.agents/skills/xcode-project-setup/scripts/xcode_spm_setup xcode_spm_setup MyApp.xcodeproj https://github.com/ContentSquare/apple-sdk 1.11.0 ContentsquareSDK
 ```
 
-_Note: It will upgrade the packages that are already present in the project._
+*Note: It will upgrade the packages that are already present in the project.*

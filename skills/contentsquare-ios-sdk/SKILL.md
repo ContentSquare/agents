@@ -1,11 +1,39 @@
 ---
 name: contentsquare-ios-sdk
-description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
+description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the app bundle id, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
 ---
 
 # Contentsquare iOS SDK Integration
 
 > This skill helps AI agents integrate or upgrade the Contentsquare iOS SDK in client applications.
+
+## MANDATORY FIRST STEP -- Contentsquare project healthcheck
+
+Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
+
+1. **Announce it first.** Tell the user what you are about to do, for example:
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle id, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+
+2. **Resolve the bundle id.** Read `PRODUCT_BUNDLE_IDENTIFIER` from the Xcode project (`*.xcodeproj/project.pbxproj`), or `CFBundleIdentifier` from `Info.plist`. Resolve any `$(...)` build-setting variables to their literal value before using it.
+
+3. **Call the endpoint.** The platform segment is literally `ios` -- no other value is accepted.
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<bundleId>.json"
+   ```
+
+4. **Report a short summary** of these values:
+
+   | Report | JSON path |
+   |---|---|
+   | Project ID | `cs_project_id` |
+   | Tracking enabled | `project_configurations.project_config.enabled` |
+   | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
+   | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
+
+5. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
 
 ## Install
 
@@ -86,27 +114,27 @@ Always use `CSQ` from `import ContentsquareSDK`. The `Contentsquare` class is th
 
 ### Lifecycle
 
-| Method             | Purpose                                             |
-| ------------------ | --------------------------------------------------- |
-| `start()`          | Start the SDK. Must be called before any other API. |
-| `stop()`           | Shut down the SDK completely.                       |
-| `pauseTracking()`  | Pause data collection (for sensitive screens).      |
-| `resumeTracking()` | Resume after `pauseTracking()`.                     |
+| Method | Purpose |
+|--------|---------|
+| `start()` | Start the SDK. Must be called before any other API. |
+| `stop()` | Shut down the SDK completely. |
+| `pauseTracking()` | Pause data collection (for sensitive screens). |
+| `resumeTracking()` | Resume after `pauseTracking()`. |
 
 Avoid using `pauseTracking` and `resumeTracking` unless you are specifically asked for it.
 
 ### Start Configuration
 
-| Method                            | Use Case                                           | Onboarding priority                                                               |
-| --------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `start(dataSourceID:, options:)`  | Both DXA and Product Analytics with data source ID | **1st choice for new clients** -- ask for this first                              |
-| `start(environmentID:, options:)` | Product Analytics with environment ID              | 2nd choice if no data source ID is available                                      |
-| `start(options:)`                 | Digital Experience Analytics only                  | Fallback only -- when neither ID is available or DXA-only is explicitly requested |
+| Method | Use Case | Onboarding priority |
+|--------|----------|---------------------|
+| `start(dataSourceID:, options:)` | Both DXA and Product Analytics with data source ID | **1st choice for new clients** -- ask for this first |
+| `start(environmentID:, options:)` | Product Analytics with environment ID | 2nd choice if no data source ID is available |
+| `start(options:)` | Digital Experience Analytics only | Fallback only -- when neither ID is available or DXA-only is explicitly requested |
 
 **Recommended onboarding flow:**
 
-1. Ask the user: _"Do you have a Contentsquare data source ID?"_ If yes, use `CSQ.start(dataSourceID: "your-data-source-id")`.
-2. If not, ask: _"Do you have an environment ID?"_ If yes, use `CSQ.start(environmentID: "your-env-id")`.
+1. Ask the user: *"Do you have a Contentsquare data source ID?"* If yes, use `CSQ.start(dataSourceID: "your-data-source-id")`.
+2. If not, ask: *"Do you have an environment ID?"* If yes, use `CSQ.start(environmentID: "your-env-id")`.
 3. Only if neither is available (or the user explicitly wants DXA-only), fall back to `CSQ.start()`.
 
 Do not invent an ID. Do not silently default to DXA without asking.
@@ -115,23 +143,23 @@ Options include: `.uploadInterval`, `.baseURL`, `.disablePageviewAutocapture`, `
 
 ### Privacy
 
-| Method     | Purpose                                                              |
-| ---------- | -------------------------------------------------------------------- |
-| `optIn()`  | Opt the device into tracking. Generates user ID, starts immediately. |
-| `optOut()` | Opt out permanently. Stops until `optIn()` or app reinstall.         |
+| Method | Purpose |
+|--------|---------|
+| `optIn()` | Opt the device into tracking. Generates user ID, starts immediately. |
+| `optOut()` | Opt out permanently. Stops until `optIn()` or app reinstall. |
 
 ### Identity
 
-| Method                         | Context                      | Purpose                                                              |
-| ------------------------------ | ---------------------------- | -------------------------------------------------------------------- |
-| `identify("userId")`           | Product Analytics            | Set user identity. Different ID triggers new session. Max 255 chars. |
-| `resetIdentity()`              | Product Analytics            | Clear identity.                                                      |
-| `sendUserIdentifier("userId")` | Digital Experience Analytics | Send hashed user ID. Max 100 chars.                                  |
+| Method | Context | Purpose |
+|--------|---------|---------|
+| `identify("userId")` | Product Analytics | Set user identity. Different ID triggers new session. Max 255 chars. |
+| `resetIdentity()` | Product Analytics | Clear identity. |
+| `sendUserIdentifier("userId")` | Digital Experience Analytics | Send hashed user ID. Max 100 chars. |
 
 ### Screen Tracking
 
-| Method                        | Purpose                                             |
-| ----------------------------- | --------------------------------------------------- |
+| Method | Purpose |
+|--------|---------|
 | `trackScreenview(_:, cvars:)` | Track a screen view with optional custom variables. |
 
 `CustomVar(index:, name:, value:)` -- index (`UInt32`), name (`String`, max 512 chars), value (`String`, max 255 chars).
@@ -147,14 +175,14 @@ CSQ.trackTransaction(transaction)
 
 ### Custom Events and Properties
 
-| Method                                        | Purpose                                       |
-| --------------------------------------------- | --------------------------------------------- |
-| `trackEvent(_:, properties:)`                 | Track a named event with optional properties. |
-| `addDynamicVar(DynamicVar)`                   | Add session-level dynamic variable (EA).      |
-| `addUserProperties([String: PropertyValue])`  | Set user-level properties (PA).               |
-| `addEventProperties([String: PropertyValue])` | Set properties on all future events (PA).     |
-| `removeEventProperty("key")`                  | Remove one event property.                    |
-| `clearEventProperties()`                      | Remove all event properties.                  |
+| Method | Purpose |
+|--------|---------|
+| `trackEvent(_:, properties:)` | Track a named event with optional properties. |
+| `addDynamicVar(DynamicVar)` | Add session-level dynamic variable (EA). |
+| `addUserProperties([String: PropertyValue])` | Set user-level properties (PA). |
+| `addEventProperties([String: PropertyValue])` | Set properties on all future events (PA). |
+| `removeEventProperty("key")` | Remove one event property. |
+| `clearEventProperties()` | Remove all event properties. |
 
 `PropertyValue` in Swift: `String`, `Substring`, `Bool`, `Double`, `Float`, `Int`, `Int64`, `Int32`, `Int16`, `Int8`.
 
@@ -162,17 +190,17 @@ CSQ.trackTransaction(transaction)
 
 ### Session Replay Masking
 
-| Method                             | Purpose                                                                                                     |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `setDefaultMasking(Bool)`          | Set global masking state. Note: text inputs stay masked even when set to `false`.                           |
-| `mask(UIView)`                     | Mask a specific view and its subviews.                                                                      |
-| `unmask(UIView)`                   | Unmask a specific view.                                                                                     |
-| `mask(viewsOfType: UIView.Type)`   | Mask all views of a type (DXA).                                                                             |
-| `unmask(viewsOfType: UIView.Type)` | Unmask all views of a type (DXA).                                                                           |
-| `ignoreInteractions(UIView)`       | Ignore interactions on a specific view (PA).                                                                |
-| `maskTexts(Bool)`                  | Mask all text content (`UILabel`, SwiftUI `Text`).                                                          |
-| `maskImages(Bool)`                 | Mask all image components (`UIImageView`, SwiftUI `Image`).                                                 |
-| `maskTextInputs(Bool)`             | Mask all text input fields (`UITextField`, `UITextView`, SwiftUI `TextField`, `SecureField`, `TextEditor`). |
+| Method | Purpose |
+|--------|---------|
+| `setDefaultMasking(Bool)` | Set global masking state. Note: text inputs stay masked even when set to `false`. |
+| `mask(UIView)` | Mask a specific view and its subviews. |
+| `unmask(UIView)` | Unmask a specific view. |
+| `mask(viewsOfType: UIView.Type)` | Mask all views of a type (DXA). |
+| `unmask(viewsOfType: UIView.Type)` | Unmask all views of a type (DXA). |
+| `ignoreInteractions(UIView)` | Ignore interactions on a specific view (PA). |
+| `maskTexts(Bool)` | Mask all text content (`UILabel`, SwiftUI `Text`). |
+| `maskImages(Bool)` | Mask all image components (`UIImageView`, SwiftUI `Image`). |
+| `maskTextInputs(Bool)` | Mask all text input fields (`UITextField`, `UITextView`, SwiftUI `TextField`, `SecureField`, `TextEditor`). |
 
 UIKit `IBInspectable` properties: `view.csqMaskContents = true`, `view.csqIgnoreInteractions = true`, `view.csqIgnoreInnerHierarchy = true`.
 
@@ -180,44 +208,44 @@ SwiftUI modifiers: `.csqMaskContents(true)`, `.csqIgnoreInteractions(true)`.
 
 ### WebView Tracking
 
-| Method                         | Purpose                            |
-| ------------------------------ | ---------------------------------- |
-| `registerWebView(WKWebView)`   | Register a WKWebView for tracking. |
-| `unregisterWebView(WKWebView)` | Unregister a WKWebView.            |
+| Method | Purpose |
+|--------|---------|
+| `registerWebView(WKWebView)` | Register a WKWebView for tracking. |
+| `unregisterWebView(WKWebView)` | Unregister a WKWebView. |
 
 WebViews are **not automatically tracked**. Every `WKWebView` instance must be registered.
 
 ### Surveys
 
-| Method                         | Purpose                                                |
-| ------------------------------ | ------------------------------------------------------ |
+| Method | Purpose |
+|--------|---------|
 | `triggerSurvey("triggerName")` | Trigger a survey by predefined trigger name (DXA VoC). |
 
 ### Error Tracking
 
-| Method                                | Purpose                                         |
-| ------------------------------------- | ----------------------------------------------- |
+| Method | Purpose |
+|--------|---------|
 | `onCrashReporterStart { enabled in }` | Callback when crash reporter initializes (DXA). |
-| `setURLMaskingPatterns(["pattern"])`  | Mask sensitive URL paths (DXA).                 |
-| `trackNetworkMetric(NetworkMetric)`   | Track HTTP network errors (DXA).                |
+| `setURLMaskingPatterns(["pattern"])` | Mask sensitive URL paths (DXA). |
+| `trackNetworkMetric(NetworkMetric)` | Track HTTP network errors (DXA). |
 
 ### CSInApp
 
 > **In-app features must be configured in the app for any of these APIs to work.** Without the URL scheme and deeplink handler in place, `handle(url:)` will never be triggered and in-app features (Screenshot Capture, SDK Logs, Log Visualizer) will not be accessible. See [references/ios-in-app-features.md](references/ios-in-app-features.md) for the full setup.
 
-| Method         | Purpose                                                                             |
-| -------------- | ----------------------------------------------------------------------------------- |
+| Method | Purpose |
+|--------|---------|
 | `handle(url:)` | Handle CSInApp URL scheme activation (DXA). Call in `application(_:open:options:)`. |
-| `csInApp`      | Read/write property to manually activate or deactivate in-app debug features (DXA). |
+| `csInApp` | Read/write property to manually activate or deactivate in-app debug features (DXA). |
 
 ### Debug and Metadata
 
-| API                                 | Purpose                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------- |
-| `debug.logLevel = .debug`           | Set log level (`.none`, `.trace`, `.debug`, `.info`, `.warn`, `.error`, `.important`) |
-| `debug.logChannel = customChannel`  | Route logs to custom logger.                                                          |
-| `metadata`                          | Access session metadata.                                                              |
-| `metadata.onChange { metadata in }` | Listen for metadata changes.                                                          |
+| API | Purpose |
+|-----|---------|
+| `debug.logLevel = .debug` | Set log level (`.none`, `.trace`, `.debug`, `.info`, `.warn`, `.error`, `.important`) |
+| `debug.logChannel = customChannel` | Route logs to custom logger. |
+| `metadata` | Access session metadata. |
+| `metadata.onChange { metadata in }` | Listen for metadata changes. |
 
 Metadata properties: `userID`, `sessionID`, `projectID`, `environmentID`, `sessionReplayURL`, `identity`.
 
@@ -287,13 +315,11 @@ CSQ.unregisterWebView(webView)
 ## Platform Guidance
 
 ### UIKit
-
 - Call `CSQ.start()` in `application(_:didFinishLaunchingWithOptions:)`.
 - Track screens in `viewWillAppear(_:)` with `CSQ.trackScreenview(_:)`.
 - Mask views with `CSQ.mask(view)` / `view.csqMaskContents = true`.
 
 ### SwiftUI
-
 - Call `CSQ.start()` in `App.init()`.
 - Track screens with `.onAppear { CSQ.trackScreenview("ScreenName") }`.
 - Mask views with `.csqMaskContents(true)` modifier.
@@ -307,7 +333,7 @@ This section covers migration from SDK versions **1.0–1.6** to **1.11.x**. If 
 
 ### Step 1 — Upgrade SDK version to 1.11.x
 
-Check whether the SDK is up to date. If not, upgrade the Contentsquare SPM package to 1.11.x.
+Check whether the SDK is up to date. If not, upgrade the Contentsquare SPM package to 1.11.x. 
 See [xcode-project-setup](xcode-project-setup.md) for upgrading the Swift Package.
 
 ### Step 2 — Replace the deprecated initialization pattern
@@ -326,9 +352,9 @@ If the project has a data source ID (preferred for new clients), use `start(data
 
 ### Step 3 — Rename options
 
-| Old name                        | New name                                                                                                      |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `.enableUIKitAutocapture`       | `.enableNativeAutocapture`                                                                                    |
+| Old name | New name |
+|----------|----------|
+| `.enableUIKitAutocapture` | `.enableNativeAutocapture` |
 | `ProductAnalyticsOption` (type) | `AnalyticsOption` (`ProductAnalyticsOption` is a deprecated typealias — prefer `AnalyticsOption` in new code) |
 
 ### Step 4 — Delete removed options
@@ -373,7 +399,6 @@ CSQ.stopSessionReplay() // terminal — cannot be restarted in the same SDK life
 In-app features (Screenshot Capture, SDK Logs, Log Visualizer, Zoning Analysis) are **essential for Contentsquare users to validate and debug the integration**. They are not optional — without this setup, Contentsquare users cannot access any of these tools.
 
 Two steps are required:
-
 1. Add the `cs-$(PRODUCT_BUNDLE_IDENTIFIER)` URL scheme to `Info.plist`.
 2. Call `CSQ.handle(url: url)` in the appropriate deeplink handler (`AppDelegate`, `SceneDelegate`, or `.onOpenURL` in SwiftUI).
 
@@ -416,3 +441,4 @@ Before considering an integration complete, verify:
 - [Official iOS in-app features documentation](https://docs.contentsquare.com/en/csq-sdk-ios/experience-analytics/in-app-features/)
 - [Official iOS documentation](https://docs.contentsquare.com/ios/)
 - [iOS compatibility](https://docs.contentsquare.com/en/ios/compatibility/)
+
