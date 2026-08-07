@@ -28,10 +28,10 @@ static func start(environmentID: String, options: [AnalyticsOption: Any] = [:])
 
 Starts Product Analytics with the given environment ID, and also starts DXA if configured for the app.
 
-| Parameter       | Type                     | Description                                                           |
-| --------------- | ------------------------ | --------------------------------------------------------------------- |
-| `environmentID` | `String`                 | Numeric string. Invalid (non-numeric) value logs an error and aborts. |
-| `options`       | `[AnalyticsOption: Any]` | Optional configuration. See [AnalyticsOption](#analyticsoption).      |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `environmentID` | `String` | Numeric string. Invalid (non-numeric) value logs an error and aborts. |
+| `options` | `[AnalyticsOption: Any]` | Optional configuration. See [AnalyticsOption](#analyticsoption). |
 
 ### start (Product Analytics + DXA with data source ID)
 
@@ -41,10 +41,10 @@ static func start(dataSourceID: String, options: [AnalyticsOption: Any] = [:])
 
 Starts both DXA and Product Analytics with the given data source ID. Preferred for new clients.
 
-| Parameter      | Type                     | Description                                                           |
-| -------------- | ------------------------ | --------------------------------------------------------------------- |
-| `dataSourceID` | `String`                 | Numeric string. Invalid (non-numeric) value logs an error and aborts. |
-| `options`      | `[AnalyticsOption: Any]` | Optional configuration. See [AnalyticsOption](#analyticsoption).      |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `dataSourceID` | `String` | Numeric string. Invalid (non-numeric) value logs an error and aborts. |
+| `options` | `[AnalyticsOption: Any]` | Optional configuration. See [AnalyticsOption](#analyticsoption). |
 
 ### stop
 
@@ -110,8 +110,8 @@ static func identify(_ identity: String)
 
 Sets the user identity. If a different identity was already set, starts a new session with a new user ID.
 
-| Parameter  | Constraint         |
-| ---------- | ------------------ |
+| Parameter | Constraint |
+|-----------|------------|
 | `identity` | Max 255 characters |
 
 ### resetIdentity (Product Analytics only)
@@ -130,8 +130,8 @@ static func sendUserIdentifier(_ userIdentifier: String)
 
 Sends a user identifier to DXA. The identifier is immediately hashed -- no PII is stored.
 
-| Parameter        | Constraint         |
-| ---------------- | ------------------ |
+| Parameter | Constraint |
+|-----------|------------|
 | `userIdentifier` | Max 100 characters |
 
 ---
@@ -166,11 +166,11 @@ public init(index: UInt32, name: String, value: String)
 
 Additional context attached to a screen view.
 
-| Parameter | Constraint                                                                 |
-| --------- | -------------------------------------------------------------------------- |
-| `index`   | `UInt32` identifier. Use consistent index for a given name across the app. |
-| `name`    | Max 512 characters. Empty string uses `"cs-empty"`.                        |
-| `value`   | Max 255 characters. Empty string uses `"cs-empty"`.                        |
+| Parameter | Constraint |
+|-----------|------------|
+| `index` | `UInt32` identifier. Use consistent index for a given name across the app. |
+| `name` | Max 512 characters. Empty string uses `"cs-empty"`. |
+| `value` | Max 255 characters. Empty string uses `"cs-empty"`. |
 
 ---
 
@@ -189,10 +189,10 @@ public init(id: String?, value: Float, currency: Currency)
 public init(id: String?, value: Float, currency: String)
 ```
 
-| Parameter  | Description                                                                                                                 |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `id`       | Optional purchase identifier.                                                                                               |
-| `value`    | Purchase amount as `Float`.                                                                                                 |
+| Parameter | Description |
+|-----------|-------------|
+| `id` | Optional purchase identifier. |
+| `value` | Purchase amount as `Float`. |
 | `currency` | ISO 4217 `Currency` enum (e.g. `.usd`, `.eur`, `.gbp`) or a string matching a case name. Invalid string maps to `.unknown`. |
 
 **Example:**
@@ -232,10 +232,10 @@ public init(key: String, value: String)  // string variant
 public init(key: String, value: UInt32)  // int variant
 ```
 
-| Variant        | Key limit     | Value limit   |
-| -------------- | ------------- | ------------- |
-| String         | Max 512 chars | Max 255 chars |
-| Int (`UInt32`) | Max 50 chars  | 0 to 2^32-1   |
+| Variant | Key limit | Value limit |
+|---------|-----------|-------------|
+| String | Max 512 chars | Max 255 chars |
+| Int (`UInt32`) | Max 50 chars | 0 to 2^32-1 |
 
 Empty key or string value uses `"cs-empty"`.
 
@@ -519,14 +519,14 @@ static let metadata: CSQ.Metadata
 
 Read-only access to current session information.
 
-| Property           | Type      | Description                     |
-| ------------------ | --------- | ------------------------------- |
-| `userID`           | `String?` | Current user identifier         |
-| `sessionID`        | `String?` | Current session identifier      |
-| `identity`         | `String?` | Identity set via `identify(_:)` |
-| `environmentID`    | `String?` | PA environment ID               |
-| `projectID`        | `String?` | DXA project ID                  |
-| `sessionReplayURL` | `URL?`    | URL to view the session replay  |
+| Property | Type | Description |
+|----------|------|-------------|
+| `userID` | `String?` | Current user identifier |
+| `sessionID` | `String?` | Current session identifier |
+| `identity` | `String?` | Identity set via `identify(_:)` |
+| `environmentID` | `String?` | PA environment ID |
+| `projectID` | `String?` | DXA project ID |
+| `sessionReplayURL` | `URL?` | URL to view the session replay |
 
 ### metadata.onChange
 
@@ -550,18 +550,18 @@ CSQ.metadata.onChange { metadata in
 
 Configuration options passed to `start(options:)`. All options are optional.
 
-| Option                                    | Type           | Description                                                                                   |
-| ----------------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
-| `.uploadInterval`                         | `TimeInterval` | How often events are uploaded                                                                 |
-| `.baseURL`                                | `URL`          | Custom API endpoint (e.g. EU data residency)                                                  |
-| `.sessionReplayAutoStart`                 | `Bool`         | If `false`, SR doesn't start at launch — use `startSessionReplay()` manually. Default: `true` |
-| `.disablePageviewAutocapture`             | `Bool`         | Disable native pageview autocapture                                                           |
-| `.disablePageviewTitleAutocapture`        | `Bool`         | Disable iOS page title autocapture                                                            |
-| `.disableInteractionAutocapture`          | `Bool`         | Disable native iOS interaction autocapture                                                    |
-| `.enableNativeAutocapture`                | `Bool`         | Enable native UIKit autocapture (PA)                                                          |
-| `.enablePushNotificationAutocapture`      | `Bool`         | Capture push notification events                                                              |
-| `.enablePushNotificationTitleAutocapture` | `Bool`         | Capture push notification title                                                               |
-| `.enablePushNotificationBodyAutocapture`  | `Bool`         | Capture push notification body                                                                |
+| Option | Type | Description |
+|--------|------|-------------|
+| `.uploadInterval` | `TimeInterval` | How often events are uploaded |
+| `.baseURL` | `URL` | Custom API endpoint (e.g. EU data residency) |
+| `.sessionReplayAutoStart` | `Bool` | If `false`, SR doesn't start at launch — use `startSessionReplay()` manually. Default: `true` |
+| `.disablePageviewAutocapture` | `Bool` | Disable native pageview autocapture |
+| `.disablePageviewTitleAutocapture` | `Bool` | Disable iOS page title autocapture |
+| `.disableInteractionAutocapture` | `Bool` | Disable native iOS interaction autocapture |
+| `.enableNativeAutocapture` | `Bool` | Enable native UIKit autocapture (PA) |
+| `.enablePushNotificationAutocapture` | `Bool` | Capture push notification events |
+| `.enablePushNotificationTitleAutocapture` | `Bool` | Capture push notification title |
+| `.enablePushNotificationBodyAutocapture` | `Bool` | Capture push notification body |
 
 > `.enableUIKitAutocapture` is deprecated — use `.enableNativeAutocapture` instead.
 > `ProductAnalyticsOption` is a deprecated typealias for `AnalyticsOption` — prefer `AnalyticsOption` in new code.

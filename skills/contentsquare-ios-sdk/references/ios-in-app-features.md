@@ -20,7 +20,6 @@ To allow Contentsquare users to enable in-app features, two implementation tasks
 The app must be opened via a custom URL scheme.
 
 **Using Xcode:**
-
 1. Open the project settings
 2. Select the app target
 3. Select the `Info` settings
@@ -111,3 +110,4 @@ struct MyApp: App {
   }
 }
 ```
+
