@@ -84,7 +84,7 @@ This observer extends `AutoRouteObserver` and adds automatic **tab navigation** 
 ```yaml
 # pubspec.yaml
 dependencies:
-  contentsquare: ^4.4.0
+  contentsquare: ^4.4.4
   csq_navigator_auto_route_observer: ^1.1.0
 ```
 
