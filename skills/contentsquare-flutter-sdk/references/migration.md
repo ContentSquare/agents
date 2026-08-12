@@ -20,7 +20,7 @@ dependencies:
 
 # After
 dependencies:
-  contentsquare: ^4.4.0
+  contentsquare: ^4.4.4
 ```
 
 ```dart

@@ -12,14 +12,15 @@ description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Repla
 Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
 
 1. **Announce it first.** Tell the user what you are about to do, for example:
+
    > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle ids, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
 
 2. **Resolve the bundle ids -- a Flutter app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
 
-   | Platform | Where to read it |
-   |---|---|
-   | Android | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`) |
-   | iOS | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `ios/Runner/Info.plist`), resolving any `$(...)` variables |
+   | Platform | Where to read it                                                                                                                                             |
+   | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+   | Android  | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`)                                        |
+   | iOS      | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `ios/Runner/Info.plist`), resolving any `$(...)` variables |
 
 3. **Call the endpoint once per platform that exists.** The platform segment must be literally `ios` or `android`. There is no Flutter platform value -- never send one.
 
@@ -32,12 +33,12 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
 
 4. **Report a short summary** of these values, per platform queried:
 
-   | Report | JSON path |
-   |---|---|
-   | Project ID | `cs_project_id` |
-   | Tracking enabled | `project_configurations.project_config.enabled` |
-   | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
-   | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
+   | Report                | JSON path                                                                                                                                                             |
+   | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | Project ID            | `cs_project_id`                                                                                                                                                       |
+   | Tracking enabled      | `project_configurations.project_config.enabled`                                                                                                                       |
+   | Session Replay        | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
+   | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version`                                          |
 
    Android and iOS may map to different Contentsquare projects. If the two responses differ, call that out explicitly.
 
@@ -49,7 +50,7 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
 
 ```yaml
 dependencies:
-  contentsquare: ^4.4.0
+  contentsquare: ^4.4.4
 ```
 
 Then run `flutter pub get`.
