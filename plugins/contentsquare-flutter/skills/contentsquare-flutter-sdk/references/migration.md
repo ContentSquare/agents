@@ -3,7 +3,7 @@
 Two distinct migrations are documented here. Pick the one that matches the customer's starting point.
 
 - [Legacy `Contentsquare` API to `CSQ` (v3.x → v4.x)](#legacy-contentsquare-api-to-csq-v3x--v4x)
-- [4.1.x to 4.4.x](#41x-to-44x)
+- [4.1.x to 4.5.0](#41x-to-450)
 
 ---
 
@@ -20,7 +20,7 @@ dependencies:
 
 # After
 dependencies:
-  contentsquare: ^4.4.4
+  contentsquare: ^4.5.0
 ```
 
 ```dart
@@ -111,7 +111,7 @@ After all replacements, run `flutter pub get` and rebuild both platforms.
 
 ---
 
-## 4.1.x to 4.4.x
+## 4.1.x to 4.5.0
 
 ### ⚠️ Breaking change: removed `AnalyticsOptions` / `ProductAnalyticsOptions` fields
 

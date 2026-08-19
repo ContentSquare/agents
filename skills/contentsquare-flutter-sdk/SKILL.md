@@ -1,6 +1,6 @@
 ---
 name: contentsquare-flutter-sdk
-description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.4.x.
+description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.5.0.
 ---
 
 # Contentsquare Flutter SDK Integration
@@ -50,12 +50,12 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
 
 ```yaml
 dependencies:
-  contentsquare: ^4.4.4
+  contentsquare: ^4.5.0
 ```
 
 Then run `flutter pub get`.
 
-> **Already on `^4.1.x`?** This release contains **breaking changes** in `AnalyticsOptions` / `ProductAnalyticsOptions` (several fields removed) and a deprecation of `configureProductAnalytics(...)`. Read the [Migration from 4.1.x to 4.4.x](references/migration.md) section before bumping.
+> **Already on `^4.1.x`?** This release contains **breaking changes** in `AnalyticsOptions` / `ProductAnalyticsOptions` (several fields removed) and a deprecation of `configureProductAnalytics(...)`. Read the [Migration from 4.1.x to 4.5.0](references/migration.md) section before bumping.
 
 > **Already on `^3.x`?** The v4 release contains **breaking changes** including API renames, `ContentsquareRoot` removal, and native cleanup. Read the [Legacy `Contentsquare` API to `CSQ` (v3.x → v4.x)](references/migration.md) section before upgrading.
 
@@ -504,7 +504,7 @@ Full migration playbooks live in [references/migration.md](references/migration.
 | Customer's current state                                                                                                                                                          | Migration to read                                                                                                                                                                                                                                             |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | On `^3.x`, uses `Contentsquare()` singleton, `ContentsquareRoot`, `MaskingConfig`, `ContentsquareNavigatorObserver`, etc.                                                         | [Legacy `Contentsquare` API to `CSQ` (v3.x → v4.x)](references/migration.md) -- API renames, `ContentsquareRoot` removal, native `AndroidManifest.xml` / `Info.plist` cleanup, Swift `Contentsquare.handle(` → `CSQ.handle(`.                                 |
-| On `^4.1.x`, may use `configureProductAnalytics(...)` and/or removed `ProductAnalyticsOptions` fields (`captureVendorId`, `resumePreviousSession`, `pruningLookBackWindow`, etc.) | [4.1.x to 4.4.x](references/migration.md) -- **breaking**: 11 `ProductAnalyticsOptions` fields removed; deprecation of `configureProductAnalytics` (removal August 2026); new `startSessionReplay` / `stopSessionReplay` and `sessionReplayAutoStart` option. |
+| On `^4.1.x`, may use `configureProductAnalytics(...)` and/or removed `ProductAnalyticsOptions` fields (`captureVendorId`, `resumePreviousSession`, `pruningLookBackWindow`, etc.) | [4.1.x to 4.5.0](references/migration.md) -- **breaking**: 11 `ProductAnalyticsOptions` fields removed; deprecation of `configureProductAnalytics` (removal August 2026); new `startSessionReplay` / `stopSessionReplay` and `sessionReplayAutoStart` option. |
 
 ## Important Constraints
 
@@ -532,7 +532,7 @@ Full migration playbooks live in [references/migration.md](references/migration.
 
 ## References
 
-- Migration playbooks (legacy v3 → v4 and 4.1.x → 4.4.x): [references/migration.md](references/migration.md)
+- Migration playbooks (legacy v3 → v4 and 4.1.x → 4.5.0): [references/migration.md](references/migration.md)
 - Full method signatures and parameter details: [references/api-reference.md](references/api-reference.md)
 - Session Replay deep dive (masking, on-demand SR, known limitations): [references/session-replay.md](references/session-replay.md)
 - iOS in-app features setup (URL scheme, deeplink handling, debugging): [references/ios-in-app-features.md](references/ios-in-app-features.md)
