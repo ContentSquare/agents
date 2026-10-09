@@ -1,6 +1,6 @@
 ---
 name: contentsquare-flutter-sdk
-description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.5.1.
+description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.5.1.
 ---
 
 # Contentsquare Flutter SDK Integration
@@ -13,25 +13,44 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
 
 1. **Announce it first.** Tell the user what you are about to do, for example:
 
-   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle ids, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll ask for your data source ID (or read your app's bundle ids if you don't have one), call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
 
-2. **Resolve the bundle ids -- a Flutter app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
+2. **Ask the user for their Contentsquare data source ID(s) first.** For example: _"Do you have a Contentsquare data source ID? There can be one or several, for example one for Android and one for iOS. If so, tell me which platform each one is for."_ Use only the IDs the user gives -- never invent one.
+
+   - **The user gives one or more data source IDs** → check by data source ID only (`v3`). Skip step 3.
+   - **The user only has an environment ID** → check by bundle id only (`v2`): an environment ID is not a data source ID and never works in the `v3` path.
+   - **The user has none, does not know, or skips the question** → check by bundle id only (`v2`).
+
+3. **Resolve the bundle ids (only without a data source ID) -- a Flutter app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
 
    | Platform | Where to read it                                                                                                                                             |
    | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
    | Android  | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`)                                        |
    | iOS      | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `ios/Runner/Info.plist`), resolving any `$(...)` variables |
 
-3. **Call the endpoint once per platform that exists.** The platform segment must be literally `ios` or `android`. There is no Flutter platform value -- never send one.
+4. **Call the endpoint -- one version only, never both.** The platform segment must be literally `ios` or `android`. There is no Flutter platform value -- never send one.
+
+   With data source IDs (`v3`), once per ID:
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v3/<dataSourceId>.json"
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v3/<dataSourceId>.json"
+   ```
+
+   Query each ID on the platform the user gave for it. If the platform is unknown, query it on each platform present in the project: a non-200 on one platform only means that data source is not set up for it.
+
+   If an ID gets no `200` on any platform you queried, tell the user -- it may be an environment ID or a typo -- and ask whether you may look for the data source ID in the code yourself: it is the ID passed to `StartConfig.withDatasourceId(id: ...)` (follow it to its literal value if it comes from a constant or a config file). If they agree and you find a different ID, run the `v3` check once with it. If they decline or there is none in the code, continue without it.
+
+   Without a data source ID (`v2`), once per platform that exists:
 
    ```bash
    curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<androidApplicationId>.json"
    curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<iosBundleId>.json"
    ```
 
-   If only one platform is present in the project, query only that one. If you cannot resolve one of the ids, ask the user which platform to check rather than guessing.
+   If only one platform is present in the project, query only that one. If you cannot resolve one of the bundle ids, ask the user which platform to check rather than guessing.
 
-4. **Report a short summary** of these values, per platform queried:
+5. **Report a short summary** of these values, for each call that returned `200`:
 
    | Report                | JSON path                                                                                                                                                             |
    | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -40,11 +59,13 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
    | Session Replay        | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
    | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version`                                          |
 
-   Android and iOS may map to different Contentsquare projects. If the two responses differ, call that out explicitly.
+   For `v3` calls, also report the Environment ID (`environment_id`).
 
-5. **Then continue** with the user's actual request.
+   Android and iOS may map to different Contentsquare projects. If the responses differ, call that out explicitly.
 
-**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
+6. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment, the `v2`/`v3` segment and the id, and do not alter the path structure. A non-200 proxied from upstream means that data source ID or bundle id has no Contentsquare configuration for that platform: say so, then continue anyway -- do not retry with the other version (the only retry is the code lookup in step 4). This healthcheck is **informational only and must never block the user's task**.
 
 ## Install
 
@@ -121,7 +142,7 @@ All three variants accept the same `AnalyticsOptions` object (see the **Analytic
 
 **Recommended onboarding flow:**
 
-1. Ask the user: _"Do you have a Contentsquare data source ID?"_ If yes, use `StartConfig.withDatasourceId(id: ...)`.
+1. Ask the user: _"Do you have a Contentsquare data source ID?"_ (skip the question if they already answered it during the healthcheck). If yes, use `StartConfig.withDatasourceId(id: ...)`.
 2. If not, ask: _"Do you have an environment ID?"_ If yes, use `StartConfig.withEnvironmentId(id: ...)`.
 3. Only if neither is available (or the user explicitly wants DXA-only), fall back to `StartConfig.dxa()`.
 4. Ask: _"Is your Product Analytics / Unified CSQ environment hosted in the EU?"_ If yes, set `baseUrl: Uri.parse('https://mh.ba.contentsquare.net')` in `AnalyticsOptions`. The default endpoint is US -- EU environments will not receive data without this override.
@@ -508,7 +529,7 @@ Full migration playbooks live in [references/migration.md](references/migration.
 
 ## Important Constraints
 
-- **Ask for IDs in this order**: Before integrating, ask the user **(1)** for a Contentsquare **data source ID** -- this is the recommended setup for new clients. **(2)** If they don't have one, ask for an **environment ID**. **(3)** Only if they have neither (or explicitly want DXA-only), fall back to `StartConfig.dxa()`. Map the answers to: `StartConfig.withDatasourceId(id:)` → `StartConfig.withEnvironmentId(id:)` → `StartConfig.dxa()`. Do not invent an ID and do not silently default to DXA.
+- **Ask for IDs in this order**: Before integrating, ask the user **(1)** for a Contentsquare **data source ID** (reuse the healthcheck answer) -- this is the recommended setup for new clients. **(2)** If they don't have one, ask for an **environment ID**. **(3)** Only if they have neither (or explicitly want DXA-only), fall back to `StartConfig.dxa()`. Map the answers to: `StartConfig.withDatasourceId(id:)` → `StartConfig.withEnvironmentId(id:)` → `StartConfig.dxa()`. Do not invent an ID and do not silently default to DXA.
 - **Never touch native code or native config** (with exceptions): Integration is **Dart-only** by default. Do not edit files under `android/`, `ios/`, `macos/`, `windows/`, `linux/` unless explicitly allowed. **Allowed exceptions:**
   - **iOS in-app features setup**: Add the `cs-$(PRODUCT_BUNDLE_IDENTIFIER)` URL scheme to `ios/Runner/Info.plist` and add the deeplink handler to `AppDelegate.swift` (see **iOS In-App Features Setup** section).
   - **v3.x → v4.x migration cleanup**: Remove the legacy `com.contentsquare.android.autostart` meta tag from `AndroidManifest.xml`, the `CSDisableAutostart` key from `Info.plist`, and rename Swift `Contentsquare.handle(` → `CSQ.handle(` (see [references/migration.md](references/migration.md)).
