@@ -1,6 +1,6 @@
 ---
 name: contentsquare-react-native-sdk
-description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
+description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
 ---
 
 # Contentsquare React Native SDK Integration
@@ -12,25 +12,44 @@ description: Integrate or upgrade the Contentsquare React Native SDK -- Session 
 Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
 
 1. **Announce it first.** Tell the user what you are about to do, for example:
-   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle ids, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll ask for your data source ID (or read your app's bundle ids if you don't have one), call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
 
-2. **Resolve the bundle ids -- a React Native app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
+2. **Ask the user for their Contentsquare data source ID(s) first.** For example: *"Do you have a Contentsquare data source ID? There can be one or several, for example one for Android and one for iOS. If so, tell me which platform each one is for."* Use only the IDs the user gives -- never invent one.
+
+   - **The user gives one or more data source IDs** → check by data source ID only (`v3`). Skip step 3.
+   - **The user only has an environment ID** → check by bundle id only (`v2`): an environment ID is not a data source ID and never works in the `v3` path.
+   - **The user has none, does not know, or skips the question** → check by bundle id only (`v2`).
+
+3. **Resolve the bundle ids (only without a data source ID) -- a React Native app has TWO, and they are frequently different strings.** Resolve each one separately; never assume they match.
 
    | Platform | Where to read it |
    |---|---|
    | Android | `applicationId` in `android/app/build.gradle(.kts)` (fall back to `namespace`, or `package` in `AndroidManifest.xml`) |
    | iOS | `PRODUCT_BUNDLE_IDENTIFIER` in `ios/<App>.xcodeproj/project.pbxproj` (or `CFBundleIdentifier` in `Info.plist`), resolving any `$(...)` variables |
 
-3. **Call the endpoint once per platform that exists.** The platform segment must be literally `ios` or `android`. There is no React Native platform value -- never send one.
+4. **Call the endpoint -- one version only, never both.** The platform segment must be literally `ios` or `android`. There is no React Native platform value -- never send one.
+
+   With data source IDs (`v3`), once per ID:
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v3/<dataSourceId>.json"
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v3/<dataSourceId>.json"
+   ```
+
+   Query each ID on the platform the user gave for it. If the platform is unknown, query it on each platform present in the project: a non-200 on one platform only means that data source is not set up for it.
+
+   If an ID gets no `200` on any platform you queried, tell the user -- it may be an environment ID or a typo -- and ask whether you may look for the data source ID in the code yourself: it is the ID passed to `StartConfig.withDataSourceId(id, ...)` (follow it to its literal value if it comes from a constant or a config file). If they agree and you find a different ID, run the `v3` check once with it. If they decline or there is none in the code, continue without it.
+
+   Without a data source ID (`v2`), once per platform that exists:
 
    ```bash
    curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<androidApplicationId>.json"
    curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<iosBundleId>.json"
    ```
 
-   If only one platform is present in the project, query only that one. If you cannot resolve one of the ids, ask the user which platform to check rather than guessing.
+   If only one platform is present in the project, query only that one. If you cannot resolve one of the bundle ids, ask the user which platform to check rather than guessing.
 
-4. **Report a short summary** of these values, per platform queried:
+5. **Report a short summary** of these values, for each call that returned `200`:
 
    | Report | JSON path |
    |---|---|
@@ -39,11 +58,13 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
    | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
    | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
 
-   Android and iOS may map to different Contentsquare projects. If the two responses differ, call that out explicitly.
+   For `v3` calls, also report the Environment ID (`environment_id`).
 
-5. **Then continue** with the user's actual request.
+   Android and iOS may map to different Contentsquare projects. If the responses differ, call that out explicitly.
 
-**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
+6. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios`/`android` segment, the `v2`/`v3` segment and the id, and do not alter the path structure. A non-200 proxied from upstream means that data source ID or bundle id has no Contentsquare configuration for that platform: say so, then continue anyway -- do not retry with the other version (the only retry is the code lookup in step 4). This healthcheck is **informational only and must never block the user's task**.
 
 ## Install
 
@@ -120,7 +141,7 @@ Always use `CSQ` from `@contentsquare/react-native-bridge`. The `Contentsquare` 
 
 **Recommended onboarding flow:**
 
-1. Ask the user: *"Do you have a Contentsquare data source ID?"* If yes, use `StartConfig.withDataSourceId(id, ...)`.
+1. Ask the user: *"Do you have a Contentsquare data source ID?"* (skip the question if they already answered it during the healthcheck). If yes, use `StartConfig.withDataSourceId(id, ...)`.
 2. If not, ask: *"Do you have an environment ID?"* If yes, use `StartConfig.withEnvironmentId(id, ...)`.
 3. Only if neither is available (or the user explicitly wants DXA-only), fall back to `StartConfig.dxa()`.
 
@@ -404,7 +425,7 @@ import { CSWebView } from '@contentsquare/react-native-bridge';
 
 ## Important Rules
 
-- **Ask for the environment ID first**: Before integrating, ask the user for their Contentsquare environment ID (or data source ID). Do not assume DXA-only mode, do not invent an ID, and do not skip this step.
+- **Ask for the environment ID first**: Before integrating, ask the user for their Contentsquare environment ID (or data source ID -- reuse the healthcheck answer). Do not assume DXA-only mode, do not invent an ID, and do not skip this step.
 - **Scan for WebViews**: During integration, search the codebase for any existing WebView usage (`react-native-webview`, `WebView` component). WebViews are not automatically tracked -- every WebView must be wrapped with `CSQWebView`.
 - Call `start(config)` with appropriate configuration before any other CSQ method
 - Always implement a consent flow before calling `optIn()` -- never auto-opt-in
