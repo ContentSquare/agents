@@ -1,6 +1,6 @@
 ---
 name: contentsquare-ios-sdk
-description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (resolve the app bundle id, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
+description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app bundle id, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
 ---
 
 # Contentsquare iOS SDK Integration
@@ -12,17 +12,33 @@ description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.1
 Before ANY Contentsquare work in a conversation -- integration, debugging, configuration questions, code changes -- run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
 
 1. **Announce it first.** Tell the user what you are about to do, for example:
-   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's bundle id, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll ask for your data source ID (or read your app's bundle id if you don't have one), call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
 
-2. **Resolve the bundle id.** Read `PRODUCT_BUNDLE_IDENTIFIER` from the Xcode project (`*.xcodeproj/project.pbxproj`), or `CFBundleIdentifier` from `Info.plist`. Resolve any `$(...)` build-setting variables to their literal value before using it.
+2. **Ask the user for their Contentsquare data source ID(s) first.** For example: *"Do you have a Contentsquare data source ID? There can be one or several."* Use only the IDs the user gives -- never invent one.
 
-3. **Call the endpoint.** The platform segment is literally `ios` -- no other value is accepted.
+   - **The user gives one or more data source IDs** → check by data source ID only (`v3`). Skip step 3.
+   - **The user only has an environment ID** → check by bundle id only (`v2`): an environment ID is not a data source ID and never works in the `v3` path.
+   - **The user has none, does not know, or skips the question** → check by bundle id only (`v2`).
+
+3. **Resolve the bundle id (only without a data source ID).** Read `PRODUCT_BUNDLE_IDENTIFIER` from the Xcode project (`*.xcodeproj/project.pbxproj`), or `CFBundleIdentifier` from `Info.plist`. Resolve any `$(...)` build-setting variables to their literal value before using it.
+
+4. **Call the endpoint -- one version only, never both.** The platform segment is literally `ios` -- no other value is accepted.
+
+   With data source IDs (`v3`), once per ID:
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v3/<dataSourceId>.json"
+   ```
+
+   If an ID does not return `200`, tell the user -- it may be an environment ID or a typo -- and ask whether you may look for the data source ID in the code yourself: it is the ID passed to `CSQ.start(dataSourceID:)` (follow it to its literal value if it comes from a constant or a config file). If they agree and you find a different ID, run the `v3` check once with it. If they decline or there is none in the code, continue without it.
+
+   Without a data source ID (`v2`):
 
    ```bash
    curl -s "https://mobile-production.content-square.net/healthcheck/ios/config/v2/<bundleId>.json"
    ```
 
-4. **Report a short summary** of these values:
+5. **Report a short summary** of these values, for each call that returned `200`:
 
    | Report | JSON path |
    |---|---|
@@ -31,9 +47,11 @@ Before ANY Contentsquare work in a conversation -- integration, debugging, confi
    | Session Replay | `project_configurations.project_config.session_replay` -- `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
    | Enabled feature flags | `project_configurations.project_config.feature_flags` -- only entries where `enabled == true`, with `name` and `min_version` |
 
-5. **Then continue** with the user's actual request.
+   For `v3` calls, also report the Environment ID (`environment_id`). If the responses differ, call that out explicitly.
 
-**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios` segment and the bundle id, and do not alter the path structure. A non-200 proxied from upstream means that bundle id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
+6. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong -- re-check the `ios` segment, the `v2`/`v3` segment and the id, and do not alter the path structure. A non-200 proxied from upstream means that data source ID or bundle id has no Contentsquare configuration: say so, then continue anyway -- do not retry with the other version (the only retry is the code lookup in step 4). This healthcheck is **informational only and must never block the user's task**.
 
 ## Install
 
@@ -133,7 +151,7 @@ Avoid using `pauseTracking` and `resumeTracking` unless you are specifically ask
 
 **Recommended onboarding flow:**
 
-1. Ask the user: *"Do you have a Contentsquare data source ID?"* If yes, use `CSQ.start(dataSourceID: "your-data-source-id")`.
+1. Ask the user: *"Do you have a Contentsquare data source ID?"* (skip the question if they already answered it during the healthcheck). If yes, use `CSQ.start(dataSourceID: "your-data-source-id")`.
 2. If not, ask: *"Do you have an environment ID?"* If yes, use `CSQ.start(environmentID: "your-env-id")`.
 3. Only if neither is available (or the user explicitly wants DXA-only), fall back to `CSQ.start()`.
 
@@ -406,7 +424,7 @@ Always include this setup when integrating the SDK. Refer to [references/ios-in-
 
 ## Important Constraints
 
-- **Ask for IDs in this order**: Before integrating, ask the user **(1)** for a Contentsquare **data source ID** -- preferred for new clients. **(2)** If they don't have one, ask for an **environment ID**. **(3)** Only if they have neither (or explicitly want DXA-only), fall back to `CSQ.start()`. Do not invent an ID and do not silently default to DXA without asking.
+- **Ask for IDs in this order**: Before integrating, ask the user **(1)** for a Contentsquare **data source ID** (reuse the healthcheck answer) -- preferred for new clients. **(2)** If they don't have one, ask for an **environment ID**. **(3)** Only if they have neither (or explicitly want DXA-only), fall back to `CSQ.start()`. Do not invent an ID and do not silently default to DXA without asking.
 - **Scan for WebViews**: During integration, search the codebase for any existing `WKWebView` usage. WebViews are not automatically tracked -- every instance must be registered with `CSQ.registerWebView(_:)`. Do not skip this step.
 - **In-app features are mandatory**: Always configure the URL scheme (`cs-$(PRODUCT_BUNDLE_IDENTIFIER)`) and `CSQ.handle(url:)` deeplink handler. Without this, Contentsquare users cannot use Screenshot Capture, SDK Logs, Log Visualizer, or Zoning Analysis. See [references/ios-in-app-features.md](references/ios-in-app-features.md).
 - **Platform support**: iOS only. Check [compatibility docs](https://docs.contentsquare.com/en/ios/compatibility/).
