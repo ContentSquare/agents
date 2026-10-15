@@ -1,0 +1,30 @@
+{
+  "name": "contentsquare",
+  "version": "1.0.0",
+  "description": "Query your Contentsquare analytics data directly from Codex using natural language.",
+  "author": {
+    "name": "Contentsquare",
+    "email": "support@contentsquare.com",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://contentsquare.com/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "ux", "metrics", "errors", "mcp"],
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Contentsquare",
+    "shortDescription": "Query your Contentsquare analytics with natural language",
+    "longDescription": "Explore user journeys, conversion funnels, error impact and page performance from your Contentsquare account without leaving Codex.",
+    "developerName": "Contentsquare",
+    "category": "Analytics",
+    "capabilities": ["Read"],
+    "websiteURL": "https://contentsquare.com/",
+    "defaultPrompt": [
+      "Show me the top pages where users drop off in my checkout funnel",
+      "Which errors cause the most missed revenue on the product page?"
+    ],
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png"
+  }
+}

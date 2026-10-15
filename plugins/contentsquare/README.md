@@ -9,7 +9,7 @@ Query your Contentsquare analytics data directly from your AI coding agent using
 
 ## Installation
 
-Install this plugin from the [Cursor marketplace](https://cursor.com/marketplace) by searching for **contentsquare**, or add it directly from this repository URL. For Claude Code, use the `.claude-plugin` marketplace entry.
+Install this plugin from the [Cursor marketplace](https://cursor.com/marketplace) by searching for **contentsquare**, or add it directly from this repository URL. For Claude Code, use the `.claude-plugin` marketplace entry. For Codex, add this repository as a marketplace (`.agents/plugins/marketplace.json`) and install **contentsquare**.
 
 Once installed, your agent will prompt you to authenticate with your Contentsquare account via OAuth. No manual token management required.
 
