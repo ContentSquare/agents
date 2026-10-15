@@ -1,0 +1,29 @@
+name: Package OpenAI plugin
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create OpenAI plugin ZIP
+        env:
+          MERGE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p dist/contentsquare
+          cp -R plugins/contentsquare/. dist/contentsquare/
+          (cd dist && zip -r "contentsquare-openai-${MERGE_SHA}.zip" contentsquare)
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: contentsquare-openai-${{ github.sha }}
+          path: dist/contentsquare-openai-${{ github.sha }}.zip
+          if-no-files-found: error
+          overwrite: true
