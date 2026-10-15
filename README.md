@@ -88,9 +88,8 @@ Add the marketplace and install the Contentsquare MCP plugin. Codex reads the `.
 
 ```shell
 codex plugin marketplace add ContentSquare/agents
+codex plugin add contentsquare@contentsquare
 ```
-
-Then install **contentsquare** from the plugin directory in Codex.
 
 ### Standalone skills (skills.sh)
 
