@@ -6,7 +6,7 @@
       "url": "https://api.contentsquare.com/mcp",
       "extensions": {
         "com.openai": {
-          "auth": { "type": "oauth" }
+          "auth": { "type": "oauth", "client": { "mode": "dcr" } }
         }
       }
     }

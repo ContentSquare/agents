@@ -16,7 +16,7 @@
     "com.openai": {
       "interface": {
         "displayName": "Contentsquare",
-        "shortDescription": "Query your Contentsquare analytics with natural language",
+        "shortDescription": "Query Contentsquare analytics",
         "longDescription": "Explore user journeys, conversion funnels, error impact and page performance from your Contentsquare account without leaving your agent.",
         "developerName": "Contentsquare",
         "category": "Analytics",

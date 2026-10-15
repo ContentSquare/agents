@@ -188,6 +188,11 @@ function validateLogoAssets() {
     const codexFile = join(dir, "plugin.json");
     if (existsSync(codexFile)) {
       const iface = readJson(codexFile)?.extensions?.["com.openai"]?.interface ?? {};
+      for (const key of ["displayName", "shortDescription"]) {
+        if (iface[key]?.length > 30) {
+          fail(codexFile, `interface.${key} exceeds the 30 character submission limit: "${iface[key]}"`);
+        }
+      }
       for (const asset of [iface.logo, iface.composerIcon, ...(iface.screenshots ?? [])]) {
         if (asset && !existsSync(join(dir, asset))) {
           fail(codexFile, `asset file not found: ${join(dir, asset)}`);
