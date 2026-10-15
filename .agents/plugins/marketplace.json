@@ -6,7 +6,7 @@
       "name": "contentsquare",
       "source": { "source": "local", "path": "./plugins/contentsquare" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
-      "category": "Analytics"
+      "category": "Data & Analytics"
     }
   ]
 }

@@ -91,6 +91,10 @@ codex plugin marketplace add ContentSquare/agents
 codex plugin add contentsquare@contentsquare
 ```
 
+### OpenAI plugin directory
+
+The `plugins/contentsquare` directory includes the portable `plugin.json` and `mcp.json` package for submission to the [OpenAI plugin directory](https://developers.openai.com/plugins/deploy/submission). The submission still requires publisher verification and reviewer materials.
+
 ### Standalone skills (skills.sh)
 
 For agents supporting the open [skills.sh](https://skills.sh) ecosystem:
@@ -128,5 +132,6 @@ The marketplaces reuse single authored sources; the rest are generated copies ke
 | `.claude-plugin/marketplace.json`                    | **Authored** marketplace catalog (Claude Code & Copilot)              |
 | `.cursor-plugin/marketplace.json`                    | **Authored** marketplace catalog (Cursor)                             |
 | `.agents/plugins/marketplace.json`                   | **Authored** marketplace catalog (Codex)                              |
+| `plugins/contentsquare/plugin.json` and `mcp.json`   | **Authored** OpenAI Agent Plugins package                             |
 
 After editing an authored source, run `./scripts/sync-plugin.sh` and commit the result. CI fails if the generated copies drift.
