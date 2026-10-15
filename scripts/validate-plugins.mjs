@@ -59,7 +59,7 @@ function manifestFiles() {
     for (const rel of [
       ".claude-plugin/plugin.json",
       ".cursor-plugin/plugin.json",
-      ".codex-plugin/plugin.json",
+      "plugin.json",
     ]) {
       const file = join(dir, rel);
       if (existsSync(file)) files.push(file);
@@ -85,24 +85,27 @@ function validateManifestNames() {
   }
 }
 
-/** .mcp.json files declare at least one server with a url or command. */
+/** .mcp.json and mcp.json declare servers with a url or command; portable mcp.json also needs a transport type. */
 function validateMcpConfigs() {
   for (const dir of pluginDirs()) {
-    const file = join(dir, ".mcp.json");
-    if (!existsSync(file)) continue;
-    const json = readJson(file);
-    if (!json) continue;
-    if (!json.mcpServers || typeof json.mcpServers !== "object") {
-      fail(file, "missing or invalid mcpServers object");
-      continue;
-    }
-    const servers = Object.entries(json.mcpServers);
-    if (servers.length === 0) {
-      fail(file, "mcpServers must have at least one entry");
-      continue;
-    }
-    for (const [name, cfg] of servers) {
-      if (!cfg.url && !cfg.command) fail(file, `server "${name}" must have url or command`);
+    for (const name of [".mcp.json", "mcp.json"]) {
+      const file = join(dir, name);
+      if (!existsSync(file)) continue;
+      const json = readJson(file);
+      if (!json) continue;
+      if (!json.mcpServers || typeof json.mcpServers !== "object") {
+        fail(file, "missing or invalid mcpServers object");
+        continue;
+      }
+      const servers = Object.entries(json.mcpServers);
+      if (servers.length === 0) {
+        fail(file, "mcpServers must have at least one entry");
+        continue;
+      }
+      for (const [serverName, cfg] of servers) {
+        if (!cfg.url && !cfg.command) fail(file, `server "${serverName}" must have url or command`);
+        if (name === "mcp.json" && !cfg.type) fail(file, `server "${serverName}" must declare a transport type`);
+      }
     }
   }
 }
@@ -131,7 +134,7 @@ function validateCatalogConsistency() {
   const catalogs = {
     ".claude-plugin/marketplace.json": ".claude-plugin/plugin.json",
     ".cursor-plugin/marketplace.json": ".cursor-plugin/plugin.json",
-    ".agents/plugins/marketplace.json": ".codex-plugin/plugin.json",
+    ".agents/plugins/marketplace.json": "plugin.json",
   };
   for (const [catalog, manifestRel] of Object.entries(catalogs)) {
     const json = readJson(catalog);
@@ -157,7 +160,7 @@ function validateCrossManifestConsistency() {
     if (!existsSync(claudeFile)) continue;
     const claude = readJson(claudeFile);
     if (!claude) continue;
-    for (const rel of [".cursor-plugin/plugin.json", ".codex-plugin/plugin.json"]) {
+    for (const rel of [".cursor-plugin/plugin.json", "plugin.json"]) {
       const file = join(dir, rel);
       if (!existsSync(file)) continue;
       const other = readJson(file);
@@ -182,9 +185,9 @@ function validateLogoAssets() {
         fail(cursorFile, `logo file not found: ${join(dir, json.logo)}`);
       }
     }
-    const codexFile = join(dir, ".codex-plugin/plugin.json");
+    const codexFile = join(dir, "plugin.json");
     if (existsSync(codexFile)) {
-      const iface = readJson(codexFile)?.interface ?? {};
+      const iface = readJson(codexFile)?.extensions?.["com.openai"]?.interface ?? {};
       for (const asset of [iface.logo, iface.composerIcon, ...(iface.screenshots ?? [])]) {
         if (asset && !existsSync(join(dir, asset))) {
           fail(codexFile, `asset file not found: ${join(dir, asset)}`);
