@@ -69,6 +69,29 @@ Exceptions: views explicitly masked/unmasked with `mask(_:)` / `unmask(_:)` take
 | `mask(viewsOfType:)` | All instances of a UIView subclass |
 | `setDefaultMasking(true)` | Everything (text inputs always masked) |
 
+### Masking rules and priority
+
+The SDK evaluates rules in order; the first matching rule wins:
+
+1. App or SDK version is fully masked (configured in the CSQ console).
+2. Remote Text or Image masking (CSQ console).
+3. Remote screen masking (CSQ console). The screen is masked.
+4. Per-instance mask/unmask (`CSQ.mask(view)` / `CSQ.unmask(view)`).
+5. Per-parent mask/unmask (parent view masked or unmasked).
+6. Per-type mask/unmask (`CSQ.mask(viewsOfType:)` / `CSQ.unmask(viewsOfType:)`).
+7. Parent type masked or unmasked.
+8. Remote Text or Image unmasking (CSQ console).
+9. Remote screen unmasking (CSQ console).
+10. Default masking state (`CSQ.setDefaultMasking(...)`).
+
+### Exception: text inputs
+
+`UITextField`, `UITextView` and SwiftUI `TextField` follow a stricter order: app or SDK version fully masked, remote text inputs masking, remote screen masking, per-instance, per-type, then masked by default. Default masking, parent masking and remote screen unmasking do **not** unmask them.
+
+### Remote screen masking scope
+
+Remote screen masking (CSQ console, closed beta) applies only to the content of the screen, that is the views of the matching view controller. It does not apply to the navigation bar, the tab bar, or any other element owned by a parent container controller. Do not try to work around this with API calls: mask those elements with `CSQ.mask(view)` if they are sensitive.
+
 ### Ignoring interactions
 
 ```swift
