@@ -92,6 +92,17 @@ The SDK evaluates rules in order; the first matching rule wins:
 
 Remote screen masking (CSQ console, closed beta) applies only to the content of the screen, that is the views of the matching view controller. It does not apply to the navigation bar, the tab bar, or any other element owned by a parent container controller. Do not try to work around this with API calls: mask those elements with `CSQ.mask(view)` if they are sensitive.
 
+### Screen names for remote screen masking
+
+Remote screen masking matches on the screen name. Make sure each screen to mask has a name: call `CSQ.trackScreenview(_:)` in UIKit. In SwiftUI, set the name on the screen's root view with `.csqScreenName(_:)`:
+
+```swift
+PaymentView()
+    .csqScreenName("Payment")
+```
+
+`.modifier(ScreenNameViewModifier(screenName: "Payment"))` is equivalent.
+
 ### Ignoring interactions
 
 ```swift
