@@ -94,7 +94,13 @@ Remote screen masking (CSQ console, closed beta) applies only to the content of 
 
 ### Screen names for remote screen masking
 
-Remote screen masking matches on the screen name. UIKit screens are named automatically by autocapture, so no API call is needed. SwiftUI screens are not captured automatically: set the name on the screen's root view with `.csqScreenName(_:)`:
+Remote screen masking matches on the screen name. Enable native autocapture in `CSQ.start` so UIKit screens are named automatically, without any API call. Remote screen masking needs it, as on Android and Flutter, where it is required:
+
+```swift
+CSQ.start(environmentID: "your-env-id", options: [.enableNativeAutocapture: true])
+```
+
+SwiftUI screens are not captured by autocapture: set the name on the screen's root view with `.csqScreenName(_:)`:
 
 ```swift
 PaymentView()
