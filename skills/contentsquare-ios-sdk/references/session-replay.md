@@ -90,7 +90,7 @@ The SDK evaluates rules in order; the first matching rule wins:
 
 ### Remote screen masking scope
 
-Remote screen masking (CSQ console, closed beta) applies only to the content of the screen, that is the views of the matching view controller. It does not apply to the navigation bar, the tab bar, or any other element owned by a parent container controller. Do not try to work around this with API calls: mask those elements with `CSQ.mask(view)` if they are sensitive.
+Remote screen masking (CSQ console, closed beta) applies only to the content of the screen, that is the views of the matching view controller. It does not cover the navigation bar, the tab bar, or any other element owned by a parent container controller, and no screen-name or tracking call changes that. If those elements show sensitive content (for example a navigation title containing a user name), mask them explicitly with `CSQ.mask(view)`, such as `CSQ.mask(navigationController.navigationBar)`.
 
 ### Screen names for remote screen masking
 
