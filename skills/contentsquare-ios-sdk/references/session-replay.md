@@ -94,7 +94,7 @@ Remote screen masking (CSQ console, closed beta) applies only to the content of 
 
 ### Screen names for remote screen masking
 
-Remote screen masking matches on the screen name. Make sure each screen to mask has a name: call `CSQ.trackScreenview(_:)` in UIKit. In SwiftUI, set the name on the screen's root view with `.csqScreenName(_:)`:
+Remote screen masking matches on the screen name. UIKit screens are named automatically by autocapture, so no API call is needed. SwiftUI screens are not captured automatically: set the name on the screen's root view with `.csqScreenName(_:)`:
 
 ```swift
 PaymentView()
