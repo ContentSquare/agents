@@ -260,8 +260,9 @@ WebViews are **not automatically tracked**. Every `WKWebView` instance must be r
 
 | API | Purpose |
 |-----|---------|
-| `debug.logLevel = .debug` | Set log level (`.none`, `.trace`, `.debug`, `.info`, `.warn`, `.error`, `.important`) |
-| `debug.logChannel = customChannel` | Route logs to custom logger. |
+| `logLevel = .debug` | Set log level (`.none`, `.error`, `.warn`, `.info`, `.debug`, `.trace`) |
+| `logChannel = customChannel` | Route logs to custom logger, replacing the default console output. |
+| `addLogChannel(_:)` / `removeLogChannel(_:)` | Add or remove a log channel alongside the existing ones. |
 | `metadata` | Access session metadata. |
 | `metadata.onChange { metadata in }` | Listen for metadata changes. |
 
