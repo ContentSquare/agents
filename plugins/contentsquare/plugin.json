@@ -1,0 +1,95 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "contentsquare",
+  "version": "1.0.0",
+  "description": "Query your Contentsquare analytics data directly from your AI agent using natural language.",
+  "author": {
+    "name": "Contentsquare",
+    "email": "support@contentsquare.com",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://contentsquare.com/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "ux", "metrics", "errors", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Contentsquare",
+        "shortDescription": "Query Contentsquare analytics",
+        "longDescription": "Explore user journeys, conversion funnels, error impact, page performance, and site metrics from your Contentsquare account. Contentsquare customers can query only projects and data their account permissions allow. Analysis tools only read analytics data; the plugin can also submit feedback when you ask. It does not modify analytics data, manage account settings, or make purchases. It requires the Contentsquare MCP integration to be enabled for your account, and query limits may apply.",
+        "developerName": "Contentsquare",
+        "category": "Data & Analytics",
+        "capabilities": ["Read Contentsquare analytics and submit feedback"],
+        "websiteURL": "https://contentsquare.com/",
+        "supportURL": "https://support.contentsquare.com/hc/en-us/requests/new",
+        "privacyPolicyURL": "https://contentsquare.com/privacy-center/services-privacy-policy/",
+        "termsOfServiceURL": "https://contentsquare.com/legal/terms-conditions/",
+        "defaultPrompt": [
+          "Show me the top pages where users drop off in my checkout funnel",
+          "Which errors cause the most missed revenue on the product page?",
+          "Compare bounce rates between my product pages and landing pages"
+        ],
+        "composerIcon": "./assets/logo.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "demo_recording_url": "https://www.youtube.com/watch?v=htHuWxBDhGA",
+        "commerce": false,
+        "commerce_description": "The plugin reads Contentsquare analytics and does not sell products, initiate transactions, or process payments.",
+        "test_cases": {
+          "positive": [
+            {
+              "description": "List the Contentsquare projects available to the connected user. Setup: select the Legacy experience during OAuth and connect an account with at least one project granted to the user.",
+              "prompt": "What Contentsquare projects can I access?",
+              "tools_triggered": "listProjects",
+              "expected_behavior": "Call listProjects and report the projects returned for the connected user. Do not invent projects or imply access beyond the returned list."
+            },
+            {
+              "description": "Analyze a funnel for a named project and requested period. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing checkout funnel data.",
+              "prompt": "For project Main Store, show where users dropped off in the checkout funnel last week.",
+              "tools_triggered": "computeFunnel",
+              "expected_behavior": "Call computeFunnel for Main Store with the requested checkout funnel and last-week period. Report the returned funnel steps and conversion or drop-off values, and identify the source period. Do not infer missing values."
+            },
+            {
+              "description": "Summarize user navigation paths in a named project. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing journey data for the product page.",
+              "prompt": "What are the most common user paths to the product page in Main Store?",
+              "tools_triggered": "computeJourney",
+              "expected_behavior": "Call computeJourney for Main Store and the product page. Summarize paths and counts returned by the tool, and make clear when the result contains no matching data."
+            },
+            {
+              "description": "Retrieve site metrics for an explicit period. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing site metrics.",
+              "prompt": "Show yesterday's bounce rate and sessions for Main Store.",
+              "tools_triggered": "computeSiteMetrics",
+              "expected_behavior": "Call computeSiteMetrics for Main Store and the requested previous-day period. Report only the returned bounce rate and sessions, with the period and units supplied by the tool."
+            },
+            {
+              "description": "Find a URL mapping by a descriptive keyword. Setup: connect an account with a mapping whose name contains 'product'. This tool is available in both experiences.",
+              "prompt": "Find the URL mapping for product pages in Main Store.",
+              "tools_triggered": "searchMappings",
+              "expected_behavior": "Call searchMappings using the product-page keyword and the connected project context. Return matching mapping names from the tool response and do not claim a match if none is returned."
+            }
+          ],
+          "negative": [
+            {
+              "description": "The plugin has no tool for creating or editing analytics configuration. Explain the limitation and do not invoke a tool.",
+              "prompt": "Create a new conversion goal named Holiday Sale in my Contentsquare account."
+            },
+            {
+              "description": "The plugin cannot delete or alter collected analytics data. Explain the limitation and do not invoke a tool.",
+              "prompt": "Delete all session data collected from the checkout page last month."
+            },
+            {
+              "description": "The plugin has no billing or purchase tools. Direct the user to their Contentsquare account administrator or support for capacity and billing questions, without invoking a tool or claiming a purchase.",
+              "prompt": "Buy more MCP query capacity for my Contentsquare account."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "countries": [],
+        "release_notes": "Initial OpenAI plugin package for the Contentsquare MCP integration."
+      }
+    }
+  }
+}
