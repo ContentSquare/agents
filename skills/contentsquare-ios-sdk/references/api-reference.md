@@ -487,29 +487,48 @@ Excludes a `UIScrollView` from exposure metric tracking.
 
 ## Debug and Metadata
 
-### debug.logLevel
+### logLevel
 
 ```swift
-static let debug: CSQ.Debug
-
-debug.logLevel: Log.Level  // get/set
+static var logLevel: Log.Level  // get/set
 ```
 
-`Log.Level` values (in increasing severity): `.none`, `.trace`, `.debug`, `.info`, `.warn`, `.error`, `.important` (default).
+`Log.Level` values (in increasing verbosity): `.none`, `.error`, `.warn`, `.info`, `.debug`, `.trace`. The default is `.info`.
 
-### debug.logChannel
+`Log.Level` is `ContentsquareCore.LogLevel`. The legacy `.important` level still compiles but is deprecated and equals `.error`.
+
+### logChannel
 
 ```swift
-debug.logChannel: LogChannel  // get/set
+static var logChannel: LogChannel?  // get/set
 ```
 
-Routes SDK logs to a custom logger. Implement the `LogChannel` protocol:
+Routes SDK logs to a custom logger. Without a custom channel, logs go to the default console output and `logChannel` is `nil`. Implement the `LogChannel` protocol from `ContentsquareCore`:
 
 ```swift
-public protocol LogChannel {
-    func printLog(logLevel: Log.Level, message: () -> String, source: String?, file: String, line: UInt)
+import ContentsquareCore
+
+final class MyLogChannel: LogChannel {
+    func printLog(_ record: LogRecord) {
+        // record.level, record.source, record.message, record.file, record.line, record.options
+    }
 }
+
+CSQ.logChannel = MyLogChannel()
 ```
+
+- Setting a channel replaces the default console output.
+- Setting `nil` removes the custom channel. The default console output is not restored afterwards.
+- SDK messages are tagged with `CSLIB` at the start of `record.message`.
+
+### addLogChannel / removeLogChannel
+
+```swift
+static func addLogChannel(_ logChannel: LogChannel)
+static func removeLogChannel(_ logChannel: LogChannel)
+```
+
+Adds a channel alongside the existing ones, so the default console output keeps working. `removeLogChannel` matches by reference identity, so use a class-based channel and keep the instance you added.
 
 ### metadata
 
@@ -583,4 +602,18 @@ Do not mix with `start(environmentID:options:)` or `start(dataSourceID:options:)
 CSQ.start(environmentID: "your-env-id", options: [.enableNativeAutocapture: true])
 // or
 CSQ.start(dataSourceID: "your-data-source-id")
+```
+
+### debug
+
+```swift
+@available(*, deprecated, message: "Use CSQ.logLevel and CSQ.logChannel instead.")
+static let debug: CSQ.Debug
+```
+
+`debug.logLevel` and `debug.logChannel` forward to `CSQ.logLevel` and `CSQ.logChannel`. The `LogChannel` protocol that was declared in `ContentsquareSDK` is now a deprecated typealias for `ContentsquareCore.LogChannel`, so existing channels keep compiling. Migrate to:
+
+```swift
+CSQ.logLevel = .debug
+CSQ.logChannel = MyLogChannel()
 ```
