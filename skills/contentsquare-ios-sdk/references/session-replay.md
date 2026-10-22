@@ -69,6 +69,46 @@ Exceptions: views explicitly masked/unmasked with `mask(_:)` / `unmask(_:)` take
 | `mask(viewsOfType:)` | All instances of a UIView subclass |
 | `setDefaultMasking(true)` | Everything (text inputs always masked) |
 
+### Masking rules and priority
+
+The SDK evaluates rules in order; the first matching rule wins:
+
+1. App or SDK version is fully masked (configured in the CSQ console).
+2. Remote Text or Image masking (CSQ console).
+3. Remote screen masking (CSQ console). The screen is masked.
+4. Per-instance mask/unmask (`CSQ.mask(view)` / `CSQ.unmask(view)`).
+5. Per-parent mask/unmask (parent view masked or unmasked).
+6. Per-type mask/unmask (`CSQ.mask(viewsOfType:)` / `CSQ.unmask(viewsOfType:)`).
+7. Parent type masked or unmasked.
+8. Remote Text or Image unmasking (CSQ console).
+9. Remote screen unmasking (CSQ console).
+10. Default masking state (`CSQ.setDefaultMasking(...)`).
+
+### Exception: text inputs
+
+`UITextField`, `UITextView` and SwiftUI `TextField` follow a stricter order: app or SDK version fully masked, remote text inputs masking, remote screen masking, per-instance, per-type, then masked by default. Default masking, parent masking and remote screen unmasking do **not** unmask them.
+
+### Remote screen masking scope
+
+Remote screen masking (CSQ console, closed beta) applies only to the content of the screen, that is the views of the matching view controller. It does not cover the navigation bar, the tab bar, or any other element owned by a parent container controller, and no screen-name or tracking call changes that. If those elements show sensitive content (for example a navigation title containing a user name), mask them explicitly with `CSQ.mask(view)`, such as `CSQ.mask(navigationController.navigationBar)`.
+
+### Screen names for remote screen masking
+
+Remote screen masking matches on the screen name. Enable native autocapture in `CSQ.start` so UIKit screens are named automatically, without any API call. Remote screen masking needs it, as on Android and Flutter, where it is required:
+
+```swift
+CSQ.start(environmentID: "your-env-id", options: [.enableNativeAutocapture: true])
+```
+
+SwiftUI screens are not captured by autocapture: set the name on the screen's root view with `.csqScreenName(_:)`:
+
+```swift
+PaymentView()
+    .csqScreenName("Payment")
+```
+
+`.modifier(ScreenNameViewModifier(screenName: "Payment"))` is equivalent.
+
 ### Ignoring interactions
 
 ```swift
