@@ -245,7 +245,7 @@ Track a named event with optional properties.
 - `eventName: string` - Name of the event
 - `properties?: Record<string, PropertyValue>` - Optional event properties
 
-**PropertyValue:** `string | number | boolean | bigint`
+**PropertyValue:** `string | number | boolean | bigint`, or an array of `string`, `number` or `boolean` (list property)
 
 **Example:**
 
@@ -258,9 +258,15 @@ CSQ.trackEvent('purchase_completed', {
   payment_method: 'credit_card',
   is_first_purchase: true,
 });
+
+// List property: all elements must be the same type
+CSQ.trackEvent('product_viewed', {
+  tags: ['sale', 'new'],
+  prices: [9.99, 19.99],
+});
 ```
 
-**Important**: Arrays and objects are not supported as property values. They will be silently ignored or cause unexpected behavior.
+**Important**: Arrays are supported as property values in `trackEvent` and `addEventProperties` (iOS SDK 1.13.0+, Android SDK 1.13.0+). All elements must be the same type (`string`, `number` or `boolean`). Mixed or nested arrays are ignored, an empty array is ignored on Android, and on Android a list is sent as a single string with elements joined by `||`. Objects are not supported as property values and are ignored.
 
 ### addDynamicVar (DXA only)
 
@@ -317,6 +323,8 @@ CSQ.addUserProperties({
   is_verified: true,
 });
 ```
+
+**Note:** Arrays are not supported in user properties on Android and are omitted.
 
 ### addEventProperties (Product Analytics only)
 

@@ -101,7 +101,7 @@ function App() {
       enableRNAutocapture: true,
       sessionReplayAutoStart: true  // Optional: auto-start session replay
     }));
-    
+
     // TODO: customer to manage consent — call only after user accepts
     CSQ.optIn();
   }, []);
@@ -308,7 +308,7 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 ### Fine-grained control with allow* props (Product Analytics)
 
 ```typescript
-<CSQMask 
+<CSQMask
   isSessionReplayMasked={true}  // Masks visual content in Session Replay
   allowText={false}             // Prevents text in PA events
   allowInteraction={false}      // Prevents interaction tracking in PA events
@@ -431,7 +431,7 @@ import { CSWebView } from '@contentsquare/react-native-bridge';
 - Always implement a consent flow before calling `optIn()` -- never auto-opt-in
 - `optOut()` is permanent until `optIn()` is called or the app is reinstalled
 - `identify()` is for Product Analytics only; `sendUserIdentifier()` is for DXA only
-- Property values must be `string`, `number`, `boolean`, or `bigint` -- other types (arrays, objects) are silently ignored or may cause unexpected behavior
+- Property values must be `string`, `number`, `boolean`, `bigint`, or an array of `string`, `number` or `boolean` with elements of one type -- other types (objects, mixed or nested arrays) are silently ignored or may cause unexpected behavior
 - `CustomVar` constraints: key max 50 chars; string value max 255 chars; number: 0 to 2^32-1
 - `userIdentifier`: max 100 characters
 - **React Native >= 0.71.0** required (bridge v6.2.0+ supports all versions from 0.71.0 onwards)
