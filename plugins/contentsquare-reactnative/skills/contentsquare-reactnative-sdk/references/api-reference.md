@@ -245,7 +245,7 @@ Track a named event with optional properties.
 - `eventName: string` - Name of the event
 - `properties?: Record<string, PropertyValue>` - Optional event properties
 
-**PropertyValue:** `string | number | boolean | bigint`
+**PropertyValue:** `string | number | boolean | bigint`, or an array of `string`, `number` or `boolean` (list property)
 
 **Example:**
 
@@ -258,9 +258,15 @@ CSQ.trackEvent('purchase_completed', {
   payment_method: 'credit_card',
   is_first_purchase: true,
 });
+
+// List property: all elements must be the same type
+CSQ.trackEvent('product_viewed', {
+  tags: ['sale', 'new'],
+  prices: [9.99, 19.99],
+});
 ```
 
-**Important**: Arrays and objects are not supported as property values. They will be silently ignored or cause unexpected behavior.
+**Important**: Arrays are supported as property values in `trackEvent` and `addEventProperties` (iOS SDK 1.13.0+, Android SDK 1.13.0+). All elements must be the same type (`string`, `number` or `boolean`). Mixed or nested arrays are ignored, an empty array is ignored on Android, and on Android a list is sent as a single string with elements joined by `||`. Objects are not supported as property values and are ignored.
 
 ### addDynamicVar (DXA only)
 
@@ -317,6 +323,8 @@ CSQ.addUserProperties({
   is_verified: true,
 });
 ```
+
+**Note:** Arrays are not supported in user properties on Android and are omitted.
 
 ### addEventProperties (Product Analytics only)
 
@@ -678,6 +686,30 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 - Only `isSessionReplayMasked` affects Session Replay visual masking
 - The `allow*` props control Product Analytics event data capture
 - When `ignoreTextOnly` is `true`, all `allow*` props are ignored and should not be set
+
+### CSQEncrypt
+
+Marks its child for controlled exposure: Session Replay collects it masked as usual and, separately, unmasked but encrypted.
+
+```typescript
+import { CSQEncrypt } from '@contentsquare/react-native-bridge';
+
+<CSQEncrypt>
+  <Text>4111 1111 1111 1111</Text>
+</CSQEncrypt>;
+```
+
+**Props:**
+
+- `children: ReactElement` - Exactly one child, which must be a `Text` or `TextInput`
+- Any `ViewProps` (for example `style`), applied to the native container
+
+**Important:**
+
+- With more than one child, an error is logged and nothing is rendered
+- A child that is not a text component is rendered but not encrypted
+- Encryption happens when the child is mounted; there is no un-encrypt API
+- See [Controlled Exposure](controlled-exposure.md) for details
 
 ### CSQWebView
 

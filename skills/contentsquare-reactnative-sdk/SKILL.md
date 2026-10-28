@@ -1,6 +1,6 @@
 ---
 name: contentsquare-react-native-sdk
-description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
+description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQEncrypt, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
 ---
 
 # Contentsquare React Native SDK Integration
@@ -101,7 +101,7 @@ function App() {
       enableRNAutocapture: true,
       sessionReplayAutoStart: true  // Optional: auto-start session replay
     }));
-    
+
     // TODO: customer to manage consent — call only after user accepts
     CSQ.optIn();
   }, []);
@@ -308,7 +308,7 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 ### Fine-grained control with allow* props (Product Analytics)
 
 ```typescript
-<CSQMask 
+<CSQMask
   isSessionReplayMasked={true}  // Masks visual content in Session Replay
   allowText={false}             // Prevents text in PA events
   allowInteraction={false}      // Prevents interaction tracking in PA events
@@ -343,6 +343,20 @@ const MaskedComponent = withCSQMask(SensitiveComponent, {
   allowText: false              // Optional: PA event data masking
 });
 ```
+
+## Controlled Exposure (CSQEncrypt)
+
+`CSQEncrypt` makes Session Replay collect a text value both masked (as usual) and, separately, unmasked but encrypted. It takes **exactly one child, which must be a `Text` or `TextInput`**; anything else is not encrypted, and several children render nothing.
+
+```typescript
+import { CSQEncrypt } from '@contentsquare/react-native-bridge';
+
+<CSQEncrypt>
+  <Text>4111 1111 1111 1111</Text>
+</CSQEncrypt>
+```
+
+Only add it for values the user explicitly asks to expose. See [references/controlled-exposure.md](references/controlled-exposure.md) for the rules, platform behavior and an integration checklist.
 
 ## Screen Tracking Integration
 
@@ -431,7 +445,7 @@ import { CSWebView } from '@contentsquare/react-native-bridge';
 - Always implement a consent flow before calling `optIn()` -- never auto-opt-in
 - `optOut()` is permanent until `optIn()` is called or the app is reinstalled
 - `identify()` is for Product Analytics only; `sendUserIdentifier()` is for DXA only
-- Property values must be `string`, `number`, `boolean`, or `bigint` -- other types (arrays, objects) are silently ignored or may cause unexpected behavior
+- Property values must be `string`, `number`, `boolean`, `bigint`, or an array of `string`, `number` or `boolean` with elements of one type -- other types (objects, mixed or nested arrays) are silently ignored or may cause unexpected behavior
 - `CustomVar` constraints: key max 50 chars; string value max 255 chars; number: 0 to 2^32-1
 - `userIdentifier`: max 100 characters
 - **React Native >= 0.71.0** required (bridge v6.2.0+ supports all versions from 0.71.0 onwards)
@@ -537,6 +551,7 @@ See [Compatibility Guide](references/compatibility.md) for detailed version matr
 - [Common Patterns](references/common-patterns.md) - Code examples and recipes
 - [Screen Tracking](references/screen-tracking.md) - React Navigation integration patterns
 - [Session Replay](references/session-replay.md) - Advanced masking strategies
+- [Controlled Exposure](references/controlled-exposure.md) - CSQEncrypt: collect text unmasked but encrypted
 - [Debugging and Tooling](references/debugging-and-tooling.md) - Autocapture setup, source maps, CLI tools
 - [WebView Tracking](references/webview-tracking.md) - WebView integration and session stitching
 - [In-App Features](references/in-app-features.md) - Debugging tools, logs, screenshot capture
