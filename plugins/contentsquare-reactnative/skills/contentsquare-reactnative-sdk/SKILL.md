@@ -1,6 +1,6 @@
 ---
 name: contentsquare-react-native-sdk
-description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
+description: Integrate or upgrade the Contentsquare React Native SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, StartConfig, AnalyticsOptions, CSQMask, CSQEncrypt, CSQWebView, @contentsquare/react-native-bridge, or migrating from the legacy `Contentsquare` API to `CSQ`.
 ---
 
 # Contentsquare React Native SDK Integration
@@ -344,6 +344,20 @@ const MaskedComponent = withCSQMask(SensitiveComponent, {
 });
 ```
 
+## Controlled Exposure (CSQEncrypt)
+
+`CSQEncrypt` makes Session Replay collect a text value both masked (as usual) and, separately, unmasked but encrypted. It takes **exactly one child, which must be a `Text` or `TextInput`**; anything else is not encrypted, and several children render nothing.
+
+```typescript
+import { CSQEncrypt } from '@contentsquare/react-native-bridge';
+
+<CSQEncrypt>
+  <Text>4111 1111 1111 1111</Text>
+</CSQEncrypt>
+```
+
+Only add it for values the user explicitly asks to expose. See [references/controlled-exposure.md](references/controlled-exposure.md) for the rules, platform behavior and an integration checklist.
+
 ## Screen Tracking Integration
 
 ### Manual tracking
@@ -537,6 +551,7 @@ See [Compatibility Guide](references/compatibility.md) for detailed version matr
 - [Common Patterns](references/common-patterns.md) - Code examples and recipes
 - [Screen Tracking](references/screen-tracking.md) - React Navigation integration patterns
 - [Session Replay](references/session-replay.md) - Advanced masking strategies
+- [Controlled Exposure](references/controlled-exposure.md) - CSQEncrypt: collect text unmasked but encrypted
 - [Debugging and Tooling](references/debugging-and-tooling.md) - Autocapture setup, source maps, CLI tools
 - [WebView Tracking](references/webview-tracking.md) - WebView integration and session stitching
 - [In-App Features](references/in-app-features.md) - Debugging tools, logs, screenshot capture

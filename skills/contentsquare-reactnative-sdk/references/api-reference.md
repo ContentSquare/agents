@@ -687,6 +687,30 @@ import { CSQMask } from '@contentsquare/react-native-bridge';
 - The `allow*` props control Product Analytics event data capture
 - When `ignoreTextOnly` is `true`, all `allow*` props are ignored and should not be set
 
+### CSQEncrypt
+
+Marks its child for controlled exposure: Session Replay collects it masked as usual and, separately, unmasked but encrypted.
+
+```typescript
+import { CSQEncrypt } from '@contentsquare/react-native-bridge';
+
+<CSQEncrypt>
+  <Text>4111 1111 1111 1111</Text>
+</CSQEncrypt>;
+```
+
+**Props:**
+
+- `children: ReactElement` - Exactly one child, which must be a `Text` or `TextInput`
+- Any `ViewProps` (for example `style`), applied to the native container
+
+**Important:**
+
+- With more than one child, an error is logged and nothing is rendered
+- A child that is not a text component is rendered but not encrypted
+- Encryption happens when the child is mounted; there is no un-encrypt API
+- See [Controlled Exposure](controlled-exposure.md) for details
+
 ### CSQWebView
 
 Wrapper for WebView components to enable session stitching between native and web.
