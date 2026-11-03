@@ -1,6 +1,6 @@
 ---
 name: contentsquare-android-sdk
-description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs. Always starts with a mandatory Contentsquare project healthcheck (resolve the app applicationId, call the healthcheck endpoint, report project health) before any other work.
+description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app applicationId, call the healthcheck endpoint, report project health) before any other work.
 ---
 
 # Contentsquare Android SDK Integration
@@ -12,17 +12,33 @@ description: Use this skill when integrating the Contentsquare Android SDK (CSQ)
 Before ANY Contentsquare work in a conversation — integration, debugging, configuration questions, code changes — run this healthcheck **exactly once per conversation**. Do not skip it. Do not defer it to later in the task.
 
 1. **Announce it first.** Tell the user what you are about to do, for example:
-   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll read your app's application id, call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
+   > "Before we start, I'll run a quick healthcheck of your Contentsquare project: I'll ask for your data source ID (or read your app's application id if you don't have one), call the Contentsquare healthcheck endpoint, and show you the current project configuration. Then we'll continue."
 
-2. **Resolve the application id.** Read `applicationId` from `app/build.gradle` or `app/build.gradle.kts`. If it is absent, fall back to `namespace`, then to the `package` attribute in `AndroidManifest.xml`. Resolve any variables or flavour suffixes to the literal id that ships.
+2. **Ask the user for their Contentsquare data source ID(s) first.** For example: *"Do you have a Contentsquare data source ID? There can be one or several."* Use only the IDs the user gives — never invent one.
 
-3. **Call the endpoint.** The platform segment is literally `android` — no other value is accepted.
+   - **The user gives one or more data source IDs** → check by data source ID only (`v3`). Skip step 3.
+   - **The user only has an environment ID** → check by application id only (`v2`): an environment ID is not a data source ID and never works in the `v3` path.
+   - **The user has none, does not know, or skips the question** → check by application id only (`v2`).
+
+3. **Resolve the application id (only without a data source ID).** Read `applicationId` from `app/build.gradle` or `app/build.gradle.kts`. If it is absent, fall back to `namespace`, then to the `package` attribute in `AndroidManifest.xml`. Resolve any variables or flavour suffixes to the literal id that ships.
+
+4. **Call the endpoint — one version only, never both.** The platform segment is literally `android` — no other value is accepted.
+
+   With data source IDs (`v3`), once per ID:
+
+   ```bash
+   curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v3/<dataSourceId>.json"
+   ```
+
+   If an ID does not return `200`, tell the user — it may be an environment ID or a typo — and ask whether you may look for the data source ID in the code yourself: it is the ID passed to `StartConfig.withDataSourceId(...)` in `CSQ.start(...)` (follow it to its literal value if it comes from `BuildConfig` or a resource). If they agree and you find a different ID, run the `v3` check once with it. If they decline or there is none in the code, continue without it.
+
+   Without a data source ID (`v2`):
 
    ```bash
    curl -s "https://mobile-production.content-square.net/healthcheck/android/config/v2/<applicationId>.json"
    ```
 
-4. **Report a short summary** of these values:
+5. **Report a short summary** of these values, for each call that returned `200`:
 
    | Report | JSON path |
    |---|---|
@@ -31,9 +47,11 @@ Before ANY Contentsquare work in a conversation — integration, debugging, conf
    | Session Replay | `project_configurations.project_config.session_replay` — `recording_rate`, `record_via_cellular_network`, `recording_quality_wifi`, `srm_enabled`, `user_identifier` |
    | Enabled feature flags | `project_configurations.project_config.feature_flags` — only entries where `enabled == true`, with `name` and `min_version` |
 
-5. **Then continue** with the user's actual request.
+   For `v3` calls, also report the Environment ID (`environment_id`). If the responses differ, call that out explicitly.
 
-**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong — re-check the `android` segment and the application id, and do not alter the path structure. A non-200 proxied from upstream means that application id has no Contentsquare project configured: say so, then continue anyway. This healthcheck is **informational only and must never block the user's task**.
+6. **Then continue** with the user's actual request.
+
+**Failure handling.** `403 Invalid health-check path` means the URL shape is wrong — re-check the `android` segment, the `v2`/`v3` segment and the id, and do not alter the path structure. A non-200 proxied from upstream means that data source ID or application id has no Contentsquare configuration: say so, then continue anyway — do not retry with the other version (the only retry is the code lookup in step 4). This healthcheck is **informational only and must never block the user's task**.
 
 ## Definition of Done
 
