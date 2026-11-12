@@ -1,6 +1,6 @@
 ---
 name: contentsquare-flutter-sdk
-description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.5.1.
+description: Integrate or upgrade the Contentsquare Flutter SDK -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the Android and iOS bundle ids, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, StartConfig, AnalyticsOptions, ProductAnalyticsOptions, CSQNavigatorObserver, CSQNavigatorAutoRouteObserver, auto_route, AutoRoute, GoRouter, go_router, CSQWebViewWrapper, configureProductAnalytics, hybrid apps / Flutter add-to-app (native Swift/Kotlin host embedding Flutter screens, FlutterEngine, FlutterViewController, FlutterActivity, `CSQ().init()`, enableFlutterModuleSupport), or migrating from the legacy `Contentsquare()` API to `CSQ()` (v3.x to v4.x) or from 4.1.x to 4.5.1.
 ---
 
 # Contentsquare Flutter SDK Integration
@@ -518,6 +518,16 @@ This is one of the few cases where editing native files is allowed.
 
 > Full implementation guide with code samples for AppDelegate, SceneDelegate, and SwiftUI: [references/ios-in-app-features.md](references/ios-in-app-features.md)
 
+## Hybrid Apps (Flutter Add-to-App)
+
+If Flutter screens are embedded in an existing **native Swift/Kotlin app that already runs the native Contentsquare SDK**, do NOT use the standard Quick Start. Use `await CSQ().init()` in the Flutter module's `main()` (instead of `start()`), and read [references/hybrid-add-to-app.md](references/hybrid-add-to-app.md) before doing anything. Key points:
+
+- Requires **Flutter >= 3.35** and the Contentsquare project is well configured to support Flutter hybrid application.
+- **iOS (mandatory order):** `CSQ.enableFlutterModuleSupport(enable: true)` before `GeneratedPluginRegistrant.register(with:)`, then `CSQ.register(flutterViewController: vc)` before presenting **every** `FlutterViewController`. Missing either fails silently. `enableFlutterModuleSupport` and `register(flutterViewController:)` requires the imports `import CSQ` and `import contentsquare` in the native host app.
+- **Android:** no extra registration call; just host Flutter via the standard APIs.
+- Re-track the native screen after Flutter is dismissed.
+- Only fullscreen Flutter is supported (embedded / multiple Flutter views per screen are not supported).
+
 ## Migrations
 
 Full migration playbooks live in [references/migration.md](references/migration.md). Load that file before performing an upgrade.
@@ -533,6 +543,7 @@ Full migration playbooks live in [references/migration.md](references/migration.
 - **Never touch native code or native config** (with exceptions): Integration is **Dart-only** by default. Do not edit files under `android/`, `ios/`, `macos/`, `windows/`, `linux/` unless explicitly allowed. **Allowed exceptions:**
   - **iOS in-app features setup**: Add the `cs-$(PRODUCT_BUNDLE_IDENTIFIER)` URL scheme to `ios/Runner/Info.plist` and add the deeplink handler to `AppDelegate.swift` (see **iOS In-App Features Setup** section).
   - **v3.x → v4.x migration cleanup**: Remove the legacy `com.contentsquare.android.autostart` meta tag from `AndroidManifest.xml`, the `CSDisableAutostart` key from `Info.plist`, and rename Swift `Contentsquare.handle(` → `CSQ.handle(` (see [references/migration.md](references/migration.md)).
+  - **Hybrid / add-to-app host setup**: the iOS `enableFlutterModuleSupport` / `register(flutterViewController:)` calls in the native host app (see [references/hybrid-add-to-app.md](references/hybrid-add-to-app.md)).
     For any native change outside these scopes, stop and ask the user instead of editing.
 - **Always configure iOS in-app features**: Apply the iOS setup on every new integration (URL scheme + `CSQ.handle(url:)` in `AppDelegate.swift`). See **iOS In-App Features Setup** and [references/ios-in-app-features.md](references/ios-in-app-features.md) for full samples.
 - **Detect navigation package & widgets**: Scan `pubspec.yaml` and code. `auto_route` → install `csq_navigator_auto_route_observer` and use `CSQNavigatorAutoRouteObserver` on `_appRouter.config(navigatorObservers: ...)`; `go_router` → `CSQNavigatorObserver` on `GoRouter(observers: [...])` (**not** `MaterialApp.router`); neither → `CSQNavigatorObserver` on `MaterialApp(navigatorObservers: [...])`. Additionally, `PageView` and `TabBar` widgets do not push routes — require manual `trackScreenview` in `onPageChanged` / `TabController.addListener`.
@@ -558,5 +569,6 @@ Full migration playbooks live in [references/migration.md](references/migration.
 - Session Replay deep dive (masking, on-demand SR, known limitations): [references/session-replay.md](references/session-replay.md)
 - iOS in-app features setup (URL scheme, deeplink handling, debugging): [references/ios-in-app-features.md](references/ios-in-app-features.md)
 - Screen tracking setups (GoRouter, AutoRoute, PageView, TabBar, modal exclusion, naming guidelines): [references/screen-tracking.md](references/screen-tracking.md)
+- Hybrid apps / Flutter add-to-app (`CSQ().init()`, iOS registration order, feature flags, limitations): [references/hybrid-add-to-app.md](references/hybrid-add-to-app.md)
 - Common patterns (alternative init, transactions, consent, events, GoRouter pageBuilder): [references/common-patterns.md](references/common-patterns.md)
 - [Official Flutter documentation](https://docs.contentsquare.com/flutter/)
