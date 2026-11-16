@@ -1,11 +1,15 @@
 ---
 name: contentsquare-ios-sdk
-description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app bundle id, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
+description: Integrate or upgrade the Contentsquare iOS SDK (current version 1.11.x) -- Session Replay, screen tracking, transactions, analytics, masking, privacy opt-in/out. Routes Contentsquare Flutter module / Flutter Add-To-App requests in native iOS applications to the Flutter integration reference. For native iOS work, always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app bundle id, call the healthcheck endpoint, report project health) before any other work. Use when working with Contentsquare, CSQ, CSQ.start, CSQ.trackScreenview, CSQ.optIn, CSQ.registerWebView, WKWebView tracking, or migrating from SDK versions 1.0–1.6 / `configureProductAnalytics` to `CSQ.start(environmentID:options:)`.
 ---
 
 # Contentsquare iOS SDK Integration
 
 > This skill helps AI agents integrate or upgrade the Contentsquare iOS SDK in client applications.
+
+## Flutter Add-To-App Routing
+
+When the client embeds a Flutter module in a native iOS application and needs Contentsquare tracking, load [Flutter Add-To-App](./references/hybrid-add-to-app.md) first and follow the linked Flutter guidance. This route takes precedence over the native iOS workflow below.
 
 ## MANDATORY FIRST STEP -- Contentsquare project healthcheck
 
