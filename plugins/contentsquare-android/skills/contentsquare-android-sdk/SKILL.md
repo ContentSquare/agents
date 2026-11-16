@@ -1,6 +1,6 @@
 ---
 name: contentsquare-android-sdk
-description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app applicationId, call the healthcheck endpoint, report project health) before any other work.
+description: Use this skill when integrating the Contentsquare Android SDK (CSQ) — including Session Replay, screen tracking, transactions, custom events, masking, Jetpack Compose support, privacy opt-in/opt-out, and migration from the Classic Contentsquare or Heap SDKs. For Flutter CSQ in an Android application with Flutter add-to-app or an embedded Flutter module, follow references/hybrid-add-to-app.md. Always starts with a mandatory Contentsquare project healthcheck (ask for the data source IDs or resolve the app applicationId, call the healthcheck endpoint, report project health) before any other work.
 ---
 
 # Contentsquare Android SDK Integration
@@ -52,6 +52,14 @@ Before ANY Contentsquare work in a conversation — integration, debugging, conf
 6. **Then continue** with the user's actual request.
 
 **Failure handling.** `403 Invalid health-check path` means the URL shape is wrong — re-check the `android` segment, the `v2`/`v3` segment and the id, and do not alter the path structure. A non-200 proxied from upstream means that data source ID or application id has no Contentsquare configuration: say so, then continue anyway — do not retry with the other version (the only retry is the code lookup in step 4). This healthcheck is **informational only and must never block the user's task**.
+
+## Integration routing
+
+After the healthcheck, determine whether the application is native-only or embeds a Flutter module.
+
+- If the client wants to integrate **Flutter CSQ in an Android application with Flutter add-to-app**, or mentions an **embedded Flutter module** or **Flutter AARs**, load and follow [references/hybrid-add-to-app.md](./references/hybrid-add-to-app.md) before making Flutter CSQ integration changes.
+- That reference routes to the Flutter SDK's dedicated hybrid guide. Do not apply the native-only Quick Start or Definition of Done below to Flutter screens, and do not repeat the healthcheck.
+- For native-only Android applications, continue below.
 
 ## Definition of Done
 
@@ -703,6 +711,7 @@ When to load each reference:
 - Migrating from the Classic Contentsquare SDK or Heap → fetch the corresponding `upgrade-from-…` page from `llms.txt`.
 
 Local mirror of selected references is also available next to this skill:
+- [references/hybrid-add-to-app.md](./references/hybrid-add-to-app.md) — integrating Flutter CSQ in an Android host with Flutter add-to-app; follow the linked Flutter SDK guide.
 - [references/api-reference.md](references/api-reference.md)
 - [references/session-replay.md](references/session-replay.md)
 - [references/migration-1.5-to-1.11.md](references/migration-1.5-to-1.11.md)
