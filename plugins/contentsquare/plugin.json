@@ -40,39 +40,39 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Count API errors over the last week, broken down by device type. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "description": "Count API errors over the last week, broken down by device type. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
               "prompt": "How many API errors happened last week, grouped by device type?",
               "tools_triggered": "listHierarchy, summarizeErrors",
               "expected_behavior": "Resolve the project and its data sources with listHierarchy, then call summarizeErrors filtered to API errors for the last week, once per device type (desktop, mobile, tablet). Report the error counts and impacted visits per device as returned, and state the period and data sources used. Do not invent values for devices with no data."
             },
             {
-              "description": "Count JavaScript errors over the last week, broken down by browser. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "description": "Count JavaScript errors over the last week, broken down by browser. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
               "prompt": "How many JavaScript errors happened in the last week, per browser type?",
               "tools_triggered": "listHierarchy, summarizeErrors",
               "expected_behavior": "Resolve the project with listHierarchy, then call summarizeErrors filtered to JS errors for the last week, segmented by browser. Report the per-browser counts returned by the tool and the period used. Do not infer browsers the tool did not return."
             },
             {
-              "description": "Count visitors of a named page over the last month. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period. The project has a page group whose name contains 'payment'.",
+              "description": "Count visitors of a named page over the last month. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period. The project has a page group whose name contains 'payment'.",
               "prompt": "How many people visited the \"payment\" page in the last month?",
               "tools_triggered": "listHierarchy, getPageGroups, listMetrics, computeMetrics",
-              "expected_behavior": "Resolve the payment page group with getPageGroups, then call computeMetrics with scope page_group for last month. Report the returned visitor or visit count with the period. If several page groups match 'payment', ask the user which one to use instead of guessing."
+              "expected_behavior": "Resolve the payment page group with getPageGroups, then call computeMetrics with scope page_group for last month. Report the returned visitor count with the period, including a zero result, without inventing traffic. If several page groups match 'payment', ask the user which one to use instead of guessing."
             },
             {
-              "description": "Split sessions by operating system and device type over the last week. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "description": "Split sessions by operating system and device type over the last week. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
               "prompt": "Give a session split between operational systems and device types in the past week",
               "tools_triggered": "listHierarchy, listMetrics, computeMetrics",
               "expected_behavior": "Call computeMetrics with scope site for the last week, grouped by the operating system (platformName) and device (deviceId) dimensions. Present the session counts per OS and device as returned, with the period and data sources used."
             },
             {
-              "description": "Count users who completed a checkout over the last 3 days. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period. The project has an e-commerce transaction event.",
+              "description": "Count users who clicked the checkout button over the last 3 days. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period. The project has a defined event named 'Go to checkout'.",
               "prompt": "How many people checked out an item in the past 3 days?",
-              "tools_triggered": "listHierarchy, getTransactionEvent, listMetrics, computeMetrics",
-              "expected_behavior": "Resolve the transaction event with getTransactionEvent, then call computeMetrics for a custom date range covering the past 3 days with that event as the conversion goal. Report the returned conversion count and the exact dates used. Do not infer missing values."
+              "tools_triggered": "listHierarchy, getDefinedEvents, listMetrics, computeMetrics",
+              "expected_behavior": "Resolve the 'Go to checkout' event with getDefinedEvents, then call computeMetrics for a custom date range covering the past 3 days with that event as the goal. Report the number of unique users who triggered it and the exact dates used, and make clear it counts checkout clicks, not completed purchases."
             }
           ],
           "negative": [
             {
-              "description": "The plugin cannot create or edit tracking configuration such as events. Explain that event definitions are managed in the Contentsquare app, and do not invoke a tool or claim an event was created.",
+              "description": "The plugin cannot create or edit tracking configuration such as events. Explain that event definitions are managed in the Contentsquare app, and do not claim an event was created. It may look up existing events, then offer to analyze the new event once it is configured.",
               "prompt": "Create a new event to track \"Add to cart\" button click"
             },
             {
@@ -80,7 +80,7 @@
               "prompt": "Get me an example email or the person who clicked on the \"Go to checkout\" button"
             },
             {
-              "description": "The plugin analyzes website and app analytics, not usage of the plugin or MCP server itself. Explain that it has no data on tool calls, and do not invoke a tool or invent a number.",
+              "description": "The plugin analyzes website and app analytics, not usage of the plugin or MCP server itself. It may check the available metrics, then explain that none measures tool calls and ask what the user means, without inventing a number.",
               "prompt": "How many tool calls happened in the past week among all users?"
             }
           ]
