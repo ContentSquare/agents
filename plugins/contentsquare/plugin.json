@@ -40,48 +40,48 @@
         "test_cases": {
           "positive": [
             {
-              "description": "List the Contentsquare projects available to the connected user. Setup: select the Legacy experience during OAuth and connect an account with at least one project granted to the user.",
-              "prompt": "What Contentsquare projects can I access?",
-              "tools_triggered": "listProjects",
-              "expected_behavior": "Call listProjects and report the projects returned for the connected user. Do not invent projects or imply access beyond the returned list."
+              "description": "Count API errors over the last week, broken down by device type. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "prompt": "How many API errors happened last week, grouped by device type?",
+              "tools_triggered": "listHierarchy, summarizeErrors",
+              "expected_behavior": "Resolve the project and its data sources with listHierarchy, then call summarizeErrors filtered to API errors for the last week, once per device type (desktop, mobile, tablet). Report the error counts and impacted visits per device as returned, and state the period and data sources used. Do not invent values for devices with no data."
             },
             {
-              "description": "Analyze a funnel for a named project and requested period. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing checkout funnel data.",
-              "prompt": "For project Main Store, show where users dropped off in the checkout funnel last week.",
-              "tools_triggered": "computeFunnel",
-              "expected_behavior": "Call computeFunnel for Main Store with the requested checkout funnel and last-week period. Report the returned funnel steps and conversion or drop-off values, and identify the source period. Do not infer missing values."
+              "description": "Count JavaScript errors over the last week, broken down by browser. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "prompt": "How many JavaScript errors happened in the last week, per browser type?",
+              "tools_triggered": "listHierarchy, summarizeErrors",
+              "expected_behavior": "Resolve the project with listHierarchy, then call summarizeErrors filtered to JS errors for the last week, segmented by browser. Report the per-browser counts returned by the tool and the period used. Do not infer browsers the tool did not return."
             },
             {
-              "description": "Summarize user navigation paths in a named project. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing journey data for the product page.",
-              "prompt": "What are the most common user paths to the product page in Main Store?",
-              "tools_triggered": "computeJourney",
-              "expected_behavior": "Call computeJourney for Main Store and the product page. Summarize paths and counts returned by the tool, and make clear when the result contains no matching data."
+              "description": "Count visitors of a named page over the last month. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period. The project has a page group whose name contains 'payment'.",
+              "prompt": "How many people visited the \"payment\" page in the last month?",
+              "tools_triggered": "listHierarchy, getPageGroups, listMetrics, computeMetrics",
+              "expected_behavior": "Resolve the payment page group with getPageGroups, then call computeMetrics with scope page_group for last month. Report the returned visitor or visit count with the period. If several page groups match 'payment', ask the user which one to use instead of guessing."
             },
             {
-              "description": "Retrieve site metrics for an explicit period. Setup: select the Legacy experience during OAuth and connect an account with a project named Main Store containing site metrics.",
-              "prompt": "Show yesterday's bounce rate and sessions for Main Store.",
-              "tools_triggered": "computeSiteMetrics",
-              "expected_behavior": "Call computeSiteMetrics for Main Store and the requested previous-day period. Report only the returned bounce rate and sessions, with the period and units supplied by the tool."
+              "description": "Split sessions by operating system and device type over the last week. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period.",
+              "prompt": "Give a session split between operational systems and device types in the past week",
+              "tools_triggered": "listHierarchy, listMetrics, computeMetrics",
+              "expected_behavior": "Call computeMetrics with scope site for the last week, grouped by the operating system (platformName) and device (deviceId) dimensions. Present the session counts per OS and device as returned, with the period and data sources used."
             },
             {
-              "description": "Find a URL mapping by a descriptive keyword. Setup: connect an account with a mapping whose name contains 'product'. This tool is available in both experiences.",
-              "prompt": "Find the URL mapping for product pages in Main Store.",
-              "tools_triggered": "searchMappings",
-              "expected_behavior": "Call searchMappings using the product-page keyword and the connected project context. Return matching mapping names from the tool response and do not claim a match if none is returned."
+              "description": "Count users who completed a checkout over the last 3 days. Setup: connect the reviewer account to the OpenAI test project (project 1284308, environment 2082603443), which holds generated data for the requested period. The project has an e-commerce transaction event.",
+              "prompt": "How many people checked out an item in the past 3 days?",
+              "tools_triggered": "listHierarchy, getTransactionEvent, listMetrics, computeMetrics",
+              "expected_behavior": "Resolve the transaction event with getTransactionEvent, then call computeMetrics for a custom date range covering the past 3 days with that event as the conversion goal. Report the returned conversion count and the exact dates used. Do not infer missing values."
             }
           ],
           "negative": [
             {
-              "description": "The plugin has no tool for creating or editing analytics configuration. Explain the limitation and do not invoke a tool.",
-              "prompt": "Create a new conversion goal named Holiday Sale in my Contentsquare account."
+              "description": "The plugin cannot create or edit tracking configuration such as events. Explain that event definitions are managed in the Contentsquare app, and do not invoke a tool or claim an event was created.",
+              "prompt": "Create a new event to track \"Add to cart\" button click"
             },
             {
-              "description": "The plugin cannot delete or alter collected analytics data. Explain the limitation and do not invoke a tool.",
-              "prompt": "Delete all session data collected from the checkout page last month."
+              "description": "The plugin does not expose personal data of individual end users. Decline to return an email or other identifying detail, and offer aggregated analytics for the button clicks instead.",
+              "prompt": "Get me an example email or the person who clicked on the \"Go to checkout\" button"
             },
             {
-              "description": "The plugin has no billing or purchase tools. Direct the user to their Contentsquare account administrator or support for capacity and billing questions, without invoking a tool or claiming a purchase.",
-              "prompt": "Buy more MCP query capacity for my Contentsquare account."
+              "description": "The plugin analyzes website and app analytics, not usage of the plugin or MCP server itself. Explain that it has no data on tool calls, and do not invoke a tool or invent a number.",
+              "prompt": "How many tool calls happened in the past week among all users?"
             }
           ]
         }
