@@ -34,7 +34,7 @@
         "logo": "./assets/logo.png"
       },
       "review": {
-        "demo_recording_url": "https://www.youtube.com/watch?v=htHuWxBDhGA",
+        "demo_recording_url": "https://github.com/ContentSquare/agents/blob/main/docs/openai-review/demo-recording.webm",
         "commerce": false,
         "commerce_description": "The plugin reads Contentsquare analytics and does not sell products, initiate transactions, or process payments.",
         "test_cases": {
