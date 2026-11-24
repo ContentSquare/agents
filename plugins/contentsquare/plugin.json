@@ -1,0 +1,111 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "contentsquare",
+  "version": "1.0.0",
+  "description": "Query your Contentsquare analytics data directly from your AI agent using natural language.",
+  "author": {
+    "name": "Contentsquare",
+    "email": "support@contentsquare.com",
+    "url": "https://contentsquare.com"
+  },
+  "homepage": "https://contentsquare.com/",
+  "repository": "https://github.com/ContentSquare/agents",
+  "license": "MIT",
+  "keywords": ["contentsquare", "analytics", "journey", "impact", "funnel", "ux", "metrics", "errors", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Contentsquare",
+        "shortDescription": "Query Contentsquare analytics",
+        "longDescription": "Explore user journeys, conversion funnels, error impact, page performance, and site metrics from your Contentsquare account. Contentsquare customers can query only projects and data their account permissions allow. Analysis tools only read analytics data; the plugin can also submit feedback when you ask. It does not modify analytics data, manage account settings, or make purchases. It requires the Contentsquare MCP integration to be enabled for your account, and query limits may apply.",
+        "developerName": "Contentsquare",
+        "category": "Data & Analytics",
+        "capabilities": ["Read Contentsquare analytics and submit feedback"],
+        "websiteURL": "https://contentsquare.com/",
+        "supportURL": "https://support.contentsquare.com/hc/en-us/requests/new",
+        "privacyPolicyURL": "https://contentsquare.com/privacy-center/services-privacy-policy/",
+        "termsOfServiceURL": "https://contentsquare.com/legal/terms-conditions/",
+        "defaultPrompt": [
+          "Show me the top pages where users drop off in my checkout funnel",
+          "Which errors cause the most missed revenue on the product page?",
+          "Compare bounce rates between my product pages and landing pages"
+        ],
+        "composerIcon": "./assets/logo.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "demo_recording_url": "https://github.com/ContentSquare/agents/blob/main/docs/openai-review/demo-recording.webm",
+        "commerce": false,
+        "commerce_description": "The plugin reads Contentsquare analytics and does not sell products, initiate transactions, or process payments.",
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Count API errors over the last week, broken down by device type. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
+              "prompt": "How many API errors happened last week, grouped by device type?",
+              "tools_triggered": "listHierarchy, summarizeErrors",
+              "expected_behavior": "Resolve the project and its data sources with listHierarchy, then call summarizeErrors filtered to API errors for the last week, once per device type (desktop, mobile, tablet). Report the error counts and impacted visits per device as returned, and state the period and data sources used. Do not invent values for devices with no data."
+            },
+            {
+              "description": "Count JavaScript errors over the last week, broken down by browser. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
+              "prompt": "How many JavaScript errors happened in the last week, per browser type?",
+              "tools_triggered": "listHierarchy, summarizeErrors",
+              "expected_behavior": "Resolve the project with listHierarchy, then call summarizeErrors filtered to JS errors for the last week, segmented by browser. Report the per-browser counts returned by the tool and the period used. Do not infer browsers the tool did not return."
+            },
+            {
+              "description": "Count visitors of a named page over the last month. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period. The project has a page group whose name contains 'payment'.",
+              "prompt": "How many people visited the \"payment\" page in the last month?",
+              "tools_triggered": "listHierarchy, getPageGroups, listMetrics, computeMetrics",
+              "expected_behavior": "Resolve the payment page group with getPageGroups, then call computeMetrics with scope page_group for last month. Report the returned visitor count with the period, including a zero result, without inventing traffic. If several page groups match 'payment', ask the user which one to use instead of guessing."
+            },
+            {
+              "description": "Split sessions by operating system and device type over the last week. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period.",
+              "prompt": "Give a session split between operational systems and device types in the past week",
+              "tools_triggered": "listHierarchy, listMetrics, computeMetrics",
+              "expected_behavior": "Call computeMetrics with scope site for the last week, grouped by the operating system (platformName) and device (deviceId) dimensions. Present the session counts per OS and device as returned, with the period and data sources used."
+            },
+            {
+              "description": "Count users who clicked the checkout button over the last 3 days. Setup: connect the reviewer account to the OpenAI test project (project 1284308, Production environment 2082603443, QT Store Web data source), which holds generated data for the requested period. The project has a defined event named 'Go to checkout'.",
+              "prompt": "How many people checked out an item in the past 3 days?",
+              "tools_triggered": "listHierarchy, getDefinedEvents, listMetrics, computeMetrics",
+              "expected_behavior": "Resolve the 'Go to checkout' event with getDefinedEvents, then call computeMetrics for a custom date range covering the past 3 days with that event as the goal. Report the number of unique users who triggered it and the exact dates used, and make clear it counts checkout clicks, not completed purchases."
+            }
+          ],
+          "negative": [
+            {
+              "description": "The plugin cannot create or edit tracking configuration such as events. Explain that event definitions are managed in the Contentsquare app, and do not claim an event was created. It may look up existing events, then offer to analyze the new event once it is configured.",
+              "prompt": "Create a new event to track \"Add to cart\" button click"
+            },
+            {
+              "description": "The plugin does not expose personal data of individual end users. Decline to return an email or other identifying detail, and offer aggregated analytics for the button clicks instead.",
+              "prompt": "Get me an example email or the person who clicked on the \"Go to checkout\" button"
+            },
+            {
+              "description": "The plugin analyzes website and app analytics, not usage of the plugin or MCP server itself. It may check the available metrics, then explain that none measures tool calls and ask what the user means, without inventing a number.",
+              "prompt": "How many tool calls happened in the past week among all users?"
+            }
+          ]
+        }
+      },
+      "publication": {
+        "countries": [
+          "AD", "AE", "AG", "AL", "AM", "AO", "AR", "AT", "AU", "AW", "AX", "AZ",
+          "BA", "BB", "BE", "BG", "BH", "BJ", "BL", "BM", "BR", "BS", "BT", "BW",
+          "BZ", "CA", "CD", "CG", "CH", "CI", "CL", "CO", "CR", "CV", "CY", "CZ",
+          "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "ER", "ES", "ET",
+          "FI", "FJ", "FM", "FO", "FR", "GA", "GB", "GD", "GE", "GF", "GH", "GL",
+          "GN", "GP", "GQ", "GR", "HR", "HT", "HU", "ID", "IE", "IL", "IN", "IS",
+          "IT", "JM", "JP", "KE", "KG", "KI", "KM", "KN", "KR", "KW", "KY", "KZ",
+          "LA", "LB", "LC", "LI", "LK", "LS", "LT", "LU", "LV", "MA", "MC", "MD",
+          "ME", "MF", "MG", "MH", "MK", "MN", "MQ", "MR", "MT", "MU", "MV", "MX",
+          "MY", "MZ", "NA", "NC", "NG", "NI", "NL", "NO", "NR", "NZ", "OM", "PA",
+          "PE", "PF", "PH", "PL", "PM", "PS", "PT", "PW", "PY", "QA", "RE", "RO",
+          "RS", "RW", "SA", "SB", "SC", "SE", "SG", "SH", "SI", "SJ", "SK", "SM",
+          "SN", "ST", "TD", "TF", "TG", "TH", "TJ", "TL", "TM", "TN", "TO", "TR",
+          "TT", "TV", "TW", "TZ", "UA", "UG", "US", "UY", "UZ", "VA", "VC", "VN",
+          "WF", "WS", "YT", "ZA", "ZM", "ZW"
+        ],
+        "release_notes": "Initial OpenAI plugin package for the Contentsquare MCP integration."
+      }
+    }
+  }
+}
