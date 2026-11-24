@@ -95,6 +95,8 @@ codex plugin add contentsquare@contentsquare
 
 The `plugins/contentsquare` directory includes the portable `plugin.json` and `mcp.json` package for submission to the [OpenAI plugin directory](https://developers.openai.com/plugins/deploy/submission). The submission still requires publisher verification and reviewer materials.
 
+When a new `version` in `plugins/contentsquare/plugin.json` reaches `main`, CI publishes the upload-ready ZIP as the `contentsquare-openai-v<version>` [release](https://github.com/ContentSquare/agents/releases). An existing release is never replaced, so bump the version to ship a changed package. To build it locally, run `./scripts/package-openai-plugin.sh`, which writes `dist/contentsquare-openai-<version>.zip`.
+
 ### Standalone skills (skills.sh)
 
 For agents supporting the open [skills.sh](https://skills.sh) ecosystem:
