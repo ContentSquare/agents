@@ -110,6 +110,12 @@ CsqIgnoreInteraction(ignore = true) {
 }
 ```
 
+In SDK 1.13.0+, pass `includeSubtree = false` to ignore the View or composable itself without automatically ignoring its children.
+
+### Controlled Exposure
+
+SDK 1.13.0+ provides `CSQ.encrypt(view)` and `Modifier.csqEncrypt()` to collect marked content encrypted in Session Replay instead of masking it. Controlled Exposure requires an eligible Experience Monitoring plan. For reusable Views, call `CSQ.clearEncrypt(view)` when rebinding content that should not be encrypted. Consult the official Session Replay documentation for configuration and privacy requirements.
+
 ### Special composable tagging
 
 For material `ModalBottomSheetLayout`, use `CsqTag` to enable proper Zoning/Heatmap capture:

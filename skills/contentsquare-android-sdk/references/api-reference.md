@@ -90,7 +90,7 @@ Resume tracking after `pauseTracking()`.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enableViewAutocapture` | `Boolean` | `false` | Auto-capture UI interactions and pageviews. **Android Views only — no Compose support.** |
+| `enableViewAutocapture` | `Boolean` | `false` | Auto-capture UI interactions and screenviews for Android Views and Compose in SDK 1.13.0+. See the PA screenview guide linked from `SKILL.md` for navigation setup. |
 | `disablePageviewAutocapture` | `Boolean` | `false` | Disable autocaptured source pageviews. |
 | `enablePushNotificationAutocapture` | `Boolean` | `false` | Auto-capture interaction events on notifications. |
 | `enablePushNotificationTitleAutocapture` | `Boolean` | `false` | Capture notification title (requires `enablePushNotificationAutocapture = true`). |
@@ -308,6 +308,7 @@ CSQ.trackEvent(
 Track a named event with optional properties.
 
 Property values: `String`, `Number`, `Boolean`, or objects implementing `com.contentsquare.api.contract.Property`.
+In SDK 1.13.0+, `trackEvent` and `addEventProperties` also accept lists of a single supported element type. Lists are sent as one value joined by `||`, up to 1024 characters.
 
 ### trackMotionEvent (EA)
 
@@ -434,7 +435,7 @@ CsqTag(CsqTag.ModalBottomSheetLayout) {
 ### ignoreInteractions
 
 ```kotlin
-CSQ.ignoreInteractions(view: View)
+CSQ.ignoreInteractions(view: View, includeSubtree: Boolean = true)
 ```
 
 ### Dialog masking extensions (Views)
