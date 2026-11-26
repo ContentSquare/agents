@@ -3,6 +3,17 @@ name: Package OpenAI plugin
 on:
   push:
     branches: [main]
+    paths:
+      - plugins/contentsquare/**
+      - scripts/package-openai-plugin.sh
+      - scripts/check-openai-zip.sh
+      - .github/workflows/package-openai-plugin.yml
+  pull_request:
+    paths:
+      - plugins/contentsquare/**
+      - scripts/package-openai-plugin.sh
+      - scripts/check-openai-zip.sh
+      - .github/workflows/package-openai-plugin.yml
 
 permissions:
   contents: read
@@ -13,17 +24,35 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Create OpenAI plugin ZIP
-        env:
-          MERGE_SHA: ${{ github.sha }}
-        run: |
-          mkdir -p dist/contentsquare
-          cp -R plugins/contentsquare/. dist/contentsquare/
-          (cd dist && zip -r "contentsquare-openai-${MERGE_SHA}.zip" contentsquare)
+      - name: Build and check OpenAI plugin ZIP
+        run: bash scripts/package-openai-plugin.sh
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: contentsquare-openai-${{ github.sha }}
-          path: dist/contentsquare-openai-${{ github.sha }}.zip
-          if-no-files-found: error
-          overwrite: true
+  publish:
+    needs: package
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-openai-plugin
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+
+      # A release keeps the ZIP downloadable as-is; workflow artifacts are re-zipped on download.
+      # A published version is never replaced, because it may already be the one submitted to OpenAI.
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(jq -r .version plugins/contentsquare/plugin.json)"
+          tag="contentsquare-openai-v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::Release $tag already exists. Bump the version in plugins/contentsquare/plugin.json to publish a new ZIP."
+            exit 0
+          fi
+          zip_path="$(bash scripts/package-openai-plugin.sh)"
+          gh release create "$tag" "$zip_path" \
+            --target "$GITHUB_SHA" \
+            --title "Contentsquare OpenAI plugin v${version}" \
+            --notes "Upload this ZIP to the OpenAI plugin submission portal."
