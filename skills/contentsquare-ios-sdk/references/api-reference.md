@@ -519,7 +519,7 @@ CSQ.logChannel = MyLogChannel()
 
 - Setting a channel replaces the default console output.
 - Setting `nil` removes the custom channel. The default console output is not restored afterwards.
-- SDK messages are tagged with `CSLIB` at the start of `record.message`.
+- `record.message` is the plain message. The default console output adds a `CSLIB` tag.
 
 ### addLogChannel / removeLogChannel
 
