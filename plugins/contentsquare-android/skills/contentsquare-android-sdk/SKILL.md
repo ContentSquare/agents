@@ -5,7 +5,7 @@ description: Use this skill when integrating the Contentsquare Android SDK (CSQ)
 
 # Contentsquare Android SDK Integration
 
-> Tested against CSQ SDK `1.11.x`. The official documentation is the source of truth — see the **References** section to fetch the latest pages on demand.
+> Compatibility and integration guidance updated for CSQ SDK `1.13.0`. The official documentation is the source of truth — see the **References** section to fetch the latest pages on demand.
 
 ## MANDATORY FIRST STEP — Contentsquare project healthcheck
 
@@ -69,7 +69,7 @@ An integration is NOT done until ALL of the following are true. If any item is m
 2. ✅ A custom `Application` subclass exists, is registered via `android:name` in `AndroidManifest.xml`, and its `onCreate()` calls `CSQ.start(this, …)`.
 3. ✅ **`CSQ.optIn()` is called** — unconditionally, in `Application.onCreate()`, immediately after `CSQ.start(...)`, guarded by a `TODO: REVIEW BEFORE RELEASE` comment. **This is mandatory for the integration phase.** CSQ ships opted-out by default; without `optIn()` logcat shows `enabledForCollection is false` and zero data is uploaded — meaning the integration cannot be verified. Moving `optIn()` to a consent flow is a SEPARATE, LATER task that the app team performs before release; do not attempt it during initial integration. Reporting "integration done" while delegating `optIn()` to a future consent flow is a FAILED integration.
 4. ✅ At least one screen is instrumented (`CSQ.trackScreenview(...)` for Views, `TriggeredOnResume { CSQ.trackScreenview(...) }` for Compose).
-5. ✅ Logcat smoke test passes — see "Verifying the integration" below. **Look for `Tracked pageview …` / `writeToDb: Attempting to insert session …` / `All pending data has been uploaded`** as positive signals. The line `enabledForCollection is false` is emitted during normal boot and is NOT a failure signal on its own — do not delete `optIn()` because of it.
+5. ✅ Logcat smoke test passes — see "Verifying the integration" below. Look for collection and upload signals, then verify screenviews in Data Feed. The line `enabledForCollection is false` is emitted during normal boot and is NOT a failure signal on its own — do not delete `optIn()` because of it.
 
 ## Concepts
 
@@ -118,11 +118,14 @@ dependencies {
 
 ### Project requirements
 
-- **minSdkVersion**: 21 (Android 5.0 Lollipop)
-- **compileSdkVersion**: 34 or higher
-- **Java**: 11 (`sourceCompatibility` / `targetCompatibility` / `jvmTarget` = 11; lower Java versions yield a `bad class file` error). Java 17+ also works.
-- **Kotlin**: 1.8.22 (the SDK ships with `stdlib`; in case of conflict, exclude `org.jetbrains.kotlin:kotlin-stdlib-jdk8`)
-- **Jetpack Compose**: Compose Compiler 1.4.8 (Compose BOM 2024.09.00 tested) — when using `sdk-compose`
+- **minSdkVersion**: 23 (Android 6.0 Marshmallow) for CSQ SDK 1.13.0 and later. Do not silently raise an app's minimum: this drops support for Android 5.x devices; discuss the upgrade with the app team.
+- **compileSdkVersion**: 34 or higher (the SDK is compiled with 34).
+- **Java**: 11 or higher (the SDK targets Java 11 bytecode; lower versions yield a `bad class file` error).
+- **Kotlin**: 1.9 or higher for CSQ SDK 1.13.0.
+- **Jetpack Compose**: `sdk-compose:1.13.0` embeds Compose 1.7.0 (BOM 2024.09.00); the minimum Compose version is 1.7.0 and the latest tested is 1.12.0. Check the compatibility page for other SDK versions.
+- **Android Gradle Plugin**: 8.1 or later when using `com.contentsquare.gradle`.
+
+For Android versions below 7.1, the compatibility page recommends including the ISRG Root X1 certificate to ensure Let's Encrypt certificates work.
 
 No `AndroidManifest.xml` permissions need to be added manually — the SDK declares what it needs and merges it automatically.
 
@@ -195,7 +198,6 @@ The integration is verified end-to-end when **both** of these logs appear in the
 
 2. **Data is being collected and persisted** — at least one of:
    ```
-   Tracked pageview from android_view_autocapture.
    User.writeToDb: Attempting to insert user - envId: <ID>, userId: <ID>, ...
    writeToDb: Attempting to insert session - envId: <ID>, userId: <ID>, sessionId: <ID>
    All pending data has been uploaded.
@@ -212,7 +214,7 @@ BatchUploaderOrchestrator: Condition not met - state.isFullyStopped: false  enab
 
 is emitted **multiple times during normal SDK boot** — even when `optIn()` has been called correctly — because the orchestrator runs before the in-memory state has finished loading. **It is NOT a failure signal on its own.** Three or four occurrences interleaved with `Starting service DXA` / `Starting service PA` are expected.
 
-It only indicates a real problem if **no** "writeToDb" / "Tracked pageview" / "All pending data has been uploaded" line ever appears in the same logcat session. Do not delete `CSQ.optIn()` from the integration based on this log.
+Investigate if no collection or upload signal appears in the same logcat session. Do not delete `CSQ.optIn()` from the integration based on this log alone. For PA autocapture, also verify screenviews and interaction attribution in Data Feed.
 
 #### Common failure modes
 
@@ -269,11 +271,11 @@ CSQ.start(
 
 `environmentId` and `dataSourceId` are obtained from the Contentsquare project settings on `app.contentsquare.com`. Never hardcode them — read from `BuildConfig`, environment variables, or a config resource.
 
-### `AnalyticsOptions` (current options, v1.11.x)
+### `AnalyticsOptions` (v1.13.0)
 
 | Option | Type | Default | Purpose |
 |--------|------|---------|---------|
-| `enableViewAutocapture` | `Boolean` | `false` | Auto-capture UI interactions and source pageviews (Android Views only — no Compose). |
+| `enableViewAutocapture` | `Boolean` | `false` | Enable interaction and screenview autocapture for Android Views and Jetpack Compose. |
 | `disablePageviewAutocapture` | `Boolean` | `false` | Disable autocaptured source pageviews. |
 | `enablePushNotificationAutocapture` | `Boolean` | `false` | Auto-capture interactions on notifications. |
 | `enablePushNotificationTitleAutocapture` | `Boolean` | `false` | Capture notification title (requires `enablePushNotificationAutocapture = true`). |
@@ -286,27 +288,23 @@ CSQ.start(
 
 > Older docs and the previous `CSQ.configureProductAnalytics(...)` method are **deprecated**. Always use `CSQ.start(context, StartConfig.…)` for new integrations.
 
-## Heap autocapture (PA / Unified mode only)
+## Autocapture (PA / Unified mode)
 
-> **Skip this entire section if the customer started CSQ with `CSQ.start(context)` alone (EA-only mode).** The `io.heap.gradle` plugin and `ComposeAutocaptureSDK` only apply when CSQ is started with `StartConfig.withEnvironmentId(...)` (Product Analytics) or `StartConfig.withDataSourceId(...)` (Unified). EA-only integrations get pageviews via the explicit `CSQ.trackScreenview(...)` API and do not need any of this.
+For Product Analytics or Unified integrations using CSQ SDK 1.13.0, use the Contentsquare Gradle plugin and enable autocapture. EA-only integrations can use explicit `CSQ.trackScreenview(...)` calls instead. The unified plugin also replaces the old network error instrumentation plugin, including in apps using that instrumentation without PA autocapture.
 
-When the customer provides an `environmentId` (PA) or `dataSourceId` (Unified), they have opted into Heap-style autocapture. To actually capture interactions automatically (button taps, screen views, etc.), the app must add bytecode instrumentation via the **Heap Gradle Plugin**.
-
-### View autocapture (Android Views)
-
-1. Apply the plugin in the **module** `build.gradle.kts` (NOT settings, NOT root):
+1. Apply the plugin in the **application module** `build.gradle.kts`:
 
    ```kotlin
    plugins {
        id("com.android.application")
        kotlin("android")
-       id("io.heap.gradle") version "1.1.1" // latest stable
+       id("com.contentsquare.gradle") version "1.1.1"
    }
    ```
 
-   Latest stable available at: `https://repo1.maven.org/maven2/io/heap/gradle/io.heap.gradle.gradle.plugin/maven-metadata.xml`. Apply the same selection rule as for `sdk` / `sdk-compose`.
+   Check `https://repo1.maven.org/maven2/com/contentsquare/gradle/com.contentsquare.gradle.gradle.plugin/maven-metadata.xml` for the latest stable version. AGP 8.1 or later is required. If the root build declares plugins with `apply false`, declare the version there and apply it in the application module without repeating the version. Remove `io.heap.gradle` and `com.contentsquare.error.analysis.network` from the same module: either conflicts with the new plugin. Keep `com.contentsquare.error.analysis.crash` if used.
 
-2. Enable view autocapture via `AnalyticsOptions` (this calls `ViewAutocaptureSDK.register()` internally — do NOT call it manually):
+2. Enable autocapture via `AnalyticsOptions`:
 
    ```kotlin
    CSQ.start(
@@ -318,34 +316,17 @@ When the customer provides an `environmentId` (PA) or `dataSourceId` (Unified), 
    )
    ```
 
-Verification: logcat shows `Source android_view_autocapture successfully registered.` and (after a tap or screen change) `Tracked pageview from android_view_autocapture.`.
+   The same option works with `StartConfig.withDataSourceId(...)`. It registers both Views and Compose autocapture; include the matching `sdk-compose` dependency for Compose and remove any old `ComposeAutocaptureSDK.register()` call and import when upgrading.
 
-### Compose autocapture
+### Screenview autocapture
 
-`enableViewAutocapture = true` does **NOT** cover Jetpack Compose — its doc string explicitly says *"Only for Android View system, no Compose support."* For Compose autocapture, all THREE of the following are required:
+In 1.13.0, enhanced screenview autocapture is the default when autocapture is enabled and `disablePageviewAutocapture` is false. Activities need `@CsqScreenView`; Fragment hosts need `CsqScreenViewContainerOwner`; supported Navigation Compose and Navigation 3 destinations are automatic; custom Compose navigation needs a `CsqScreenView` wrapper. Follow the [PA screenview guide](https://docs.contentsquare.com/en/csq-sdk-android/product-analytics/track-screenviews/index.md) for imports and setup, and verify screen names and interaction attribution in Data Feed.
 
-1. `io.heap.gradle` plugin applied (same as for View autocapture above).
-2. The `sdk-compose` artifact already pulled in via `implementation("com.contentsquare.android:sdk-compose:<version>")` (it transitively brings `io.heap.autocapture:heap-autocapture-compose`).
-3. **Manual** registration after `CSQ.start(...)`:
-
-   ```kotlin
-   import io.heap.autocapture.compose.ComposeAutocaptureSDK
-
-   override fun onCreate() {
-       super.onCreate()
-       CSQ.start(this, StartConfig.withEnvironmentId(BuildConfig.CSQ_ENVIRONMENT_ID))
-       ComposeAutocaptureSDK.register()  // Compose autocapture is NOT enabled by AnalyticsOptions
-       CSQ.optIn() // TODO: REVIEW BEFORE RELEASE — see Privacy/Consent
-   }
-   ```
-
-   Note the import: `io.heap.autocapture.compose.ComposeAutocaptureSDK` (it lives in the bundled Heap autocapture-compose module, NOT in `com.contentsquare.*`).
-
-Verification: logcat shows `Source android_compose_autocapture successfully registered.`. The line `(HeapInstrumentation) semantics: capture is disabled; using stock Modifier.semantics` is normal — semantics capture is opt-in via `ComposeAutocaptureSDK.register(enableSemanticsCapture = true)`; default is fine for most apps.
+On upgrades, screen names or counts may change or screens may be missing. To retain Activity-only behavior, call `com.contentsquare.autocapture.AutocaptureSDK.useLegacyActivityPageviewAutocapture()` before `CSQ.start()`, while enabling autocapture and leaving `disablePageviewAutocapture` false.
 
 ### Manual screenviews still work alongside autocapture
 
-Even with autocapture enabled, you can (and often should) emit named screenviews via `CSQ.trackScreenview("Conversation")` or `TriggeredOnResume { … }` in Compose. Manual names yield more meaningful labels in the Heap UI than auto-derived class/route names.
+Manual screenviews can coexist with autocapture, but check for duplicates. If using manual screenviews instead of automatic ones, set `disablePageviewAutocapture = true`; interaction autocapture stays enabled and attaches to manually tracked screens.
 
 ## Privacy / Consent
 
@@ -435,6 +416,7 @@ Signature: `Transaction(value: Float, currency: Currency, id: String? = null)`.
 - `CSQ.addDynamicVar(key: String, value: String)` / `CSQ.addDynamicVar(key: String, value: Long)` — (EA) Add a session-level variable. Key max 512 chars; max 40 distinct keys per screenview.
 
 Property values: `String`, `Number`, `Boolean`, or objects implementing the `Property` interface.
+Since 1.13.0, `trackEvent` and `addEventProperties` also accept lists of a single supported element type. Lists are sent as one value joined by `||`, up to 1024 characters.
 
 ### Session Replay masking
 
@@ -446,12 +428,14 @@ Views:
 - `CSQ.mask(type: Class<*>)` / `CSQ.unmask(type: Class<*>)` — Per-type. (EA)
 - `CSQ.maskTexts(mask: Boolean)` — Global text masking switch.
 - `view.csqMaskContents(enable: Boolean)` — Kotlin extension on `View`.
-- `CSQ.ignoreInteractions(view: View)` / `view.csqIgnoreInteractions()` — Stop gesture tracking for a view.
+- `CSQ.ignoreInteractions(view: View, includeSubtree: Boolean = true)` / `view.csqIgnoreInteractions(includeSubtree = true)` — Stop gesture tracking for a view and, by default, its subtree.
 
 Compose:
 - `CsqMask(enable: Boolean) { content }` — Mask a composable subtree (Session Replay + analytics).
-- `CsqIgnoreInteraction(ignore: Boolean) { content }` — Ignore interactions on a subtree.
+- `CsqIgnoreInteraction(ignore: Boolean, includeSubtree: Boolean) { content }` — Ignore interactions on a subtree, or only the composable itself with `includeSubtree = false` (1.13.0+).
 - `CsqTag(CsqTag.ModalBottomSheetLayout) { content }` — Tag a composable for special handling (Heatmap/Zoning support of `ModalBottomSheetLayout`).
+
+Controlled Exposure (1.13.0+, subject to plan availability): `CSQ.encrypt(view)` or `Modifier.csqEncrypt()` marks content for encrypted Session Replay collection instead of masking. For reusable Views, call `CSQ.clearEncrypt(view)` when rebinding to content that should not be encrypted. Consult the Session Replay documentation before enabling this feature.
 
 Dialogs (Views) — extension functions in `com.contentsquare.api.sessionreplay`:
 - `AlertDialog.csqMask()`, `csqMaskTitle()`, `csqMaskMessage()`, `csqMaskPositiveButton()`, `csqMaskNegativeButton()` (and `csqUnmask…` counterparts).
@@ -539,6 +523,7 @@ override fun dispatchTouchEvent(motionEvent: MotionEvent): Boolean {
 ### View tracking
 
 - `CSQ.excludeFromExposureMetric(view: View)` — Exclude a `ScrollView` or `RecyclerView` from Exposure Metrics. (EA)
+- `CSQ.setAreaIdentifier(view, identifier)`, `view.csqAreaIdentifier(identifier)`, or `Modifier.csqAreaIdentifier(identifier)` — Assign a reliable area identifier for Zoning (1.13.0+).
 
 ### Debug, logging, metadata
 
@@ -682,7 +667,10 @@ If the host app already declares the CSQ SDK (`com.contentsquare.android:sdk`) a
 
 | Current version | Target version | Guide |
 |---|---|---|
-| `1.0.x` – `1.5.x` | `1.11.x` | [`references/migration-1.5-to-1.11.md`](references/migration-1.5-to-1.11.md) |
+| `1.0.x` – `1.5.x` | `1.13.0` or later | [`references/migration-1.5-to-1.11.md`](references/migration-1.5-to-1.11.md), then the 1.13.0 upgrade steps below |
+| `1.10.x` – `1.12.x` | `1.13.0` or later | 1.13.0 upgrade steps below |
+
+For any upgrade crossing 1.13.0, review the [1.13.0 changelog](https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/changelog/index.md): check the Android and Kotlin minimums, replace incompatible Gradle plugins, remove manual Compose autocapture registration, and review the new screenview setup and attribution. Do not change the app's supported Android versions without agreement.
 
 For migrations from the **Classic Contentsquare SDK** (`com.contentsquare.android:library`) or the **Heap Core + Contentsquare** combo, fetch the dedicated `upgrade-from-cs-sdk` / `upgrade-from-heap-and-cs-sdk` pages from the Contentsquare docs (see the *References* section below) — those paths are not covered by this skill.
 
@@ -699,6 +687,7 @@ The official Contentsquare docs expose Markdown versions of every page — fetch
 - **Privacy & consent:** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/privacy/index.md
 - **Session Replay (masking deep dive):** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/session-replay/index.md
 - **Track screens:** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/track-screens/index.md
+- **PA screenview autocapture:** https://docs.contentsquare.com/en/csq-sdk-android/product-analytics/track-screenviews/index.md
 - **Track transactions:** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/track-transactions/index.md
 - **Troubleshooting:** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/troubleshooting/index.md
 - **Changelog:** https://docs.contentsquare.com/en/csq-sdk-android/experience-analytics/changelog/index.md

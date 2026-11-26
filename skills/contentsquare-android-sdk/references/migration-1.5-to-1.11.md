@@ -1,10 +1,10 @@
 # Migrating from CSQ SDK 1.5.x → 1.11.x
 
-> **When to load this file:** the host app already declares `com.contentsquare.android:sdk` (and usually `com.contentsquare.android:sdk-compose`) at a version `1.0.x – 1.5.x` and needs to upgrade to `1.11.x`.
+> **When to load this file:** the host app already declares `com.contentsquare.android:sdk` (and usually `com.contentsquare.android:sdk-compose`) at a version `1.0.x – 1.5.x` and needs to upgrade. This guide describes the historical 1.11.x transition; also follow the 1.13.0 upgrade steps in `SKILL.md` when upgrading to a current release.
 >
 > For migrations from the **Classic Contentsquare SDK** (`com.contentsquare.android:library`) or the **Heap Core + Contentsquare** combo, do NOT use this file — fetch the dedicated `upgrade-from-cs-sdk` / `upgrade-from-heap-and-cs-sdk` pages from the Contentsquare docs instead.
 >
-> No `1.6.x – 1.9.x` versions were ever published — Maven Central jumps straight from `1.5.2` to `1.11.0`. Do not look for an intermediate version.
+> Maven Central includes `1.5.3` and `1.10.x` before `1.11.0`. An intermediate upgrade is not required.
 
 ## 1. Bump the dependency
 
@@ -18,7 +18,7 @@ implementation("com.contentsquare.android:sdk:1.11.0")
 implementation("com.contentsquare.android:sdk-compose:1.11.0")
 ```
 
-Always re-check Maven Central for the latest published version of **both** artifacts and pick the highest version present in both — see the *Install* section of `SKILL.md`. If you cannot reach Maven Central, fall back to `1.11.0` (known good at the time this guide was written).
+These versions illustrate the historical migration, not the current target. Re-check Maven Central for the latest published version of **both** artifacts and pick the highest version present in both — see the *Install* section of `SKILL.md`. If Maven Central is unavailable, report the blocker rather than silently selecting an old release.
 
 ## 2. `CSQ.start()` signature change (breaking)
 
@@ -77,11 +77,12 @@ The context-taking overload still works at runtime in `1.11.x` but is deprecated
 
 ## 5. Behavior change — Session timeout (Experience Analytics)
 
-In `1.11.x` (EA `4.50.0`) the EA session timeout definition changed from *"30 minutes after the app went to background"* to **"30 minutes after the last event"**. Sessions in active foreground use will now also roll over after 30 minutes of inactivity. Consider this when computing session-scoped metrics across the upgrade boundary.
+In `1.10.0` (EA `4.50.0`) the EA session timeout definition changed from *"30 minutes after the app went to background"* to **"30 minutes after the last event"**. Sessions in active foreground use will now also roll over after 30 minutes of inactivity. Consider this when computing session-scoped metrics across the upgrade boundary.
 
 ## 6. Migration checklist
 
-- [ ] Both `sdk` and `sdk-compose` updated to the same `1.11.x` version.
+- [ ] Both `sdk` and `sdk-compose` updated to the same selected current version.
+- [ ] For 1.13.0+, review minimum Android and Kotlin versions and the plugin and screenview autocapture upgrade steps in `SKILL.md`.
 - [ ] `CSQ.configureProductAnalytics(...)` replaced by `CSQ.start(context, StartConfig.withEnvironmentId(...))`.
 - [ ] `ProductAnalyticsOptions` renamed to `AnalyticsOptions`; removed options deleted from the call site.
 - [ ] `CSQ.optIn(this)` replaced by `CSQ.optIn()`.
